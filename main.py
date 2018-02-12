@@ -76,7 +76,7 @@ def train_epoch(model, data_iter, criterion, optimizer):
         target = Variable(target)
         if opt.cuda:
             data, target = data.cuda(), target.cuda()
-        target = target.contiguous().view(-1)
+        target = target.float()
         pred = model.forward(data)
         loss = criterion(pred, target)
         total_loss += loss.data[0]
