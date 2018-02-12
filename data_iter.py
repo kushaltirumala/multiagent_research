@@ -28,8 +28,9 @@ class GenDataIter(object):
     def __next__(self):
         return self.next()
     
-    def reset_pointer(self):
-        self.pointer = 0
+    def reset(self):
+        self.idx = 0
+
 
     def next(self):
         if self.idx >= self.data_num:

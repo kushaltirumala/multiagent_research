@@ -29,12 +29,12 @@ print(opt)
 
 # Basic Training Paramters
 SEED = 88
-BATCH_SIZE = 8
+BATCH_SIZE = 29
 TOTAL_BATCH = 10
 GENERATED_NUM = 80
 POSITIVE_FILE = 'real.data'
 NEGATIVE_FILE = 'training.data'
-# EVAL_FILE = 'evaluation.data'
+EVAL_FILE = 'evaluation.data'
 VOCAB_SIZE = 22
 PRE_EPOCH_NUM = 10
 
