@@ -32,7 +32,6 @@ SEED = 88
 BATCH_SIZE = 29
 TOTAL_BATCH = 10
 GENERATED_NUM = 80
-POSITIVE_FILE = 'real.data'
 NEGATIVE_FILE = 'training.data'
 EVAL_FILE = 'evaluation.data'
 VOCAB_SIZE = 22
@@ -209,7 +208,7 @@ if opt.cuda:
 print('Pretrain Discriminator ...')
 for epoch in range(5):
     generate_samples(generator, BATCH_SIZE, GENERATED_NUM, NEGATIVE_FILE)
-    dis_data_iter = DisDataIter(POSITIVE_FILE, NEGATIVE_FILE, BATCH_SIZE)
+    dis_data_iter = DisDataIter(data, NEGATIVE_FILE, BATCH_SIZE)
     for _ in range(3):
         loss = train_epoch(discriminator, dis_data_iter, dis_criterion, dis_optimizer)
         print('Epoch [%d], loss: %f' % (epoch, loss))
@@ -249,11 +248,11 @@ for total_batch in range(TOTAL_BATCH):
         loss.backward()
         gen_gan_optm.step()
 
-    if total_batch % 1 == 0 or total_batch == TOTAL_BATCH - 1:
-        generate_samples(generator, BATCH_SIZE, GENERATED_NUM, EVAL_FILE)
-        eval_iter = GenDataIter(EVAL_FILE, BATCH_SIZE)
-        loss = eval_epoch(target_lstm, eval_iter, gen_criterion)
-        print('Batch [%d] True Loss: %f' % (total_batch, loss))
+    # if total_batch % 1 == 0 or total_batch == TOTAL_BATCH - 1:
+    #     generate_samples(generator, BATCH_SIZE, GENERATED_NUM, EVAL_FILE)
+    #     eval_iter = GenDataIter(EVAL_FILE, BATCH_SIZE)
+    #     loss = eval_epoch(target_lstm, eval_iter, gen_criterion)
+    #     print('Batch [%d] True Loss: %f' % (total_batch, loss))
     rollout.update_params()
     
     for _ in range(4):

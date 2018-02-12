@@ -73,7 +73,7 @@ class Generator(nn.Module):
         if flag:
             for i in range(seq_len):
                 output, h, c = self.step(x, h, c)
-                x = output.permute(0,2,1).multinomial(1)
+                x = output[0]
                 samples.append(x)
                 x = output
         else:
