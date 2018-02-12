@@ -48,7 +48,7 @@ class DisDataIter(object):
         super(DisDataIter, self).__init__()
         self.batch_size = batch_size
         # real_data_lis = self.read_file(real_data_file)
-        self.real_data = data
+        self.real_data = real_data
         fake_data_lis = self.read_file(fake_data_file)
         self.data = self.real_data + fake_data_lis
         self.labels = [1 for _ in range(self.real_data.shape[0])] +\

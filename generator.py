@@ -44,7 +44,7 @@ class Generator(nn.Module):
         """
         emb = x.float()
         output, (h, c) = self.lstm(emb, (h, c))
-        pred = F.softmax(self.lin(output.view(-1, self.hidden_dim)))
+        pred = F.sigmoid(self.lin(output))
         return pred, h, c
 
 
@@ -65,7 +65,7 @@ class Generator(nn.Module):
         if x is None:
             flag = True
         if flag:
-            x = Variable(torch.zeros((batch_size, 1)).long())
+            x = Variable(torch.zeros((batch_size, 1, 22)).long())
         if self.use_cuda:
             x = x.cuda()
         h, c = self.init_hidden(batch_size)
@@ -73,8 +73,9 @@ class Generator(nn.Module):
         if flag:
             for i in range(seq_len):
                 output, h, c = self.step(x, h, c)
-                x = output.multinomial(1)
+                x = output.permute(0,2,1).multinomial(1)
                 samples.append(x)
+                x = output
         else:
             given_len = x.size(1)
             lis = x.chunk(x.size(1), dim=1)

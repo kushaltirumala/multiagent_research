@@ -206,7 +206,7 @@ dis_criterion = nn.NLLLoss(size_average=False)
 dis_optimizer = optim.Adam(discriminator.parameters())
 if opt.cuda:
     dis_criterion = dis_criterion.cuda()
-print('Pretrain Dsicriminator ...')
+print('Pretrain Discriminator ...')
 for epoch in range(5):
     generate_samples(generator, BATCH_SIZE, GENERATED_NUM, NEGATIVE_FILE)
     dis_data_iter = DisDataIter(POSITIVE_FILE, NEGATIVE_FILE, BATCH_SIZE)
@@ -216,7 +216,7 @@ for epoch in range(5):
 # Adversarial Training 
 rollout = Rollout(generator, 0.8)
 print('#####################################################')
-print('Start Adeversatial Training...\n')
+print('Start Adversarial Training...\n')
 gen_gan_loss = GANLoss()
 gen_gan_optm = optim.Adam(generator.parameters())
 if opt.cuda:
