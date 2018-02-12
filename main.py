@@ -192,7 +192,7 @@ gen_criterion = nn.BCELoss(size_average=False)
 gen_optimizer = optim.Adam(generator.parameters())
 if opt.cuda:
     gen_criterion = gen_criterion.cuda()
-print('Pretrain with MLE ...')
+print('Pretrain with BCE ...')
 for epoch in range(PRE_EPOCH_NUM):
     loss = train_epoch(generator, gen_data_iter, gen_criterion, gen_optimizer)
     print('Epoch [%d] Model Loss: %f'% (epoch, loss))

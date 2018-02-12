@@ -32,7 +32,7 @@ class Generator(nn.Module):
         emb = x.float() # batch size x seq_len x 22
         h0, c0 = self.init_hidden(x.size(0))
         output, (h, c) = self.lstm(emb, (h0, c0))
-        pred = self.softmax(self.lin(output))
+        pred = F.sigmoid(self.lin(output))
         return pred        
 
     def step(self, x, h, c):
