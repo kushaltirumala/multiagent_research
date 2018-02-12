@@ -21,7 +21,6 @@ class Generator(nn.Module):
         self.emb = nn.Embedding(num_emb, emb_dim)
         self.lstm = nn.LSTM(emb_dim, hidden_dim, batch_first=True)
         self.lin = nn.Linear(hidden_dim, num_emb)
-        self.softmax = nn.LogSoftmax()
         self.init_params()
 
     def forward(self, x):
@@ -65,7 +64,7 @@ class Generator(nn.Module):
         if x is None:
             flag = True
         if flag:
-            x = Variable(torch.zeros((batch_size, 1, 22)).long())
+            x = Variable(torch.zeros((batch_size, 1, 22)).float())
         if self.use_cuda:
             x = x.cuda()
         h, c = self.init_hidden(batch_size)
@@ -73,7 +72,6 @@ class Generator(nn.Module):
         if flag:
             for i in range(seq_len):
                 output, h, c = self.step(x, h, c)
-                x = output[0]
                 samples.append(x)
                 x = output
         else:
