@@ -23,6 +23,7 @@ class Generator(nn.Module):
         self.lin = nn.Linear(hidden_dim, num_emb)
         self.init_params()
 
+
     def forward(self, x):
         """
         Args:
