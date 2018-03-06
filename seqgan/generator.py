@@ -95,17 +95,21 @@ class Generator(nn.Module):
     def sample(self, batch_size, seq_len, x): ## x is initial state or roll-out histories
         h = self.init_hidden(batch_size)
         samples = []
+        actions = []
         given_len = x.size(1)
         lis = x.chunk(x.size(1), dim=1)
         for i in range(given_len):
             action, h = self.select_action(lis[i], h)
             samples.append(lis[i])
+            actions.append(action)
 
         x = self.env(x, action)
         for i in range(given_len, seq_len):
             samples.append(x)
             action, h = self.select_action(x, h)
+            actions.append(action)
             x = self.env(x, action)
 
         output = torch.cat(samples, dim=1)
-        return output
+        actions = torch.cat(actions, dim=1)
+        return output, actions

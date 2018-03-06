@@ -13,8 +13,8 @@ class GenDataIter(object):
     def __init__(self, states, actions, batch_size):
         super(GenDataIter, self).__init__()
         self.batch_size = batch_size
-        self.states = states
-        self.actions = actions
+        self.states = torch.from_numpy(states)
+        self.actions = torch.from_numpy(actions)
         self.data_num = self.states.shape[0]
         self.indices = range(self.data_num)
         self.num_batches = int(math.ceil(float(self.data_num)/self.batch_size))

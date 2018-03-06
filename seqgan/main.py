@@ -103,25 +103,13 @@ class GANLoss(nn.Module):
     def __init__(self):
         super(GANLoss, self).__init__()
 
-    def forward(self, prob, target, reward):
+    def forward(self, prob, reward):
         """
         Args:
-            prob: (N, C), torch Variable 
-            target : (N, ), torch Variable
+            prob: (N), torch Variable 
             reward : (N, ), torch Variable
         """
-        N = target.size(0)
-        C = prob.size(1)
-        one_hot = torch.zeros((N, C))
-        if prob.is_cuda:
-            one_hot = one_hot.cuda()
-        one_hot.scatter_(1, target.data.view((-1,1)), 1)
-        one_hot = one_hot.type(torch.ByteTensor)
-        one_hot = Variable(one_hot)
-        if prob.is_cuda:
-            one_hot = one_hot.cuda()
-        loss = torch.masked_select(prob, one_hot)
-        loss = loss * reward
+        loss = prob * reward
         loss =  -torch.sum(loss)
         return loss
 
@@ -247,34 +235,34 @@ if opt.cuda:
 for total_batch in range(TOTAL_BATCH):
     ## Train the generator for one step
     for it in range(1):
-        samples = generator.sample(BATCH_SIZE, g_sequence_len)
-        # construct the input to the genrator, add zeros before samples and delete the last column
-        zeros = torch.zeros((BATCH_SIZE, 1)).type(torch.LongTensor)
-        if samples.is_cuda:
-            zeros = zeros.cuda()
-        inputs = Variable(torch.cat([zeros, samples.data], dim = 1)[:, :-1].contiguous())
-        targets = Variable(samples.data).contiguous().view((-1,))
+        samp_ind = np.random.choice(train_states.shape[0], BATCH_SIZE)
+        mod_samples = torch.from_numpy(train_states[samp_ind].copy())
+        starts = Variable(mod_samples[:, :1, :].clone())
+
+        samples, targets = generator.sample(BATCH_SIZE, g_sequence_len, starts)
         # calculate the reward
         rewards = rollout.get_reward(samples, 16, discriminator)
-        rewards = Variable(torch.Tensor(rewards)).contiguous().view((-1,))
+        rewards = Variable(torch.Tensor(rewards))
         if opt.cuda:
             rewards = torch.exp(rewards.cuda()).contiguous().view((-1,))
-        prob = generator.forward(inputs)
-        loss = gen_gan_loss(prob, targets, rewards)
+        prob = generator.get_log_prob(samples, targets).contiguous().view((-1,))
+        loss = gen_gan_loss(prob, rewards)
         gen_gan_optm.zero_grad()
         loss.backward()
         gen_gan_optm.step()
 
-    # if total_batch % 1 == 0 or total_batch == TOTAL_BATCH - 1:
-    #     generate_samples(generator, BATCH_SIZE, GENERATED_NUM, EVAL_FILE)
-    #     eval_iter = GenDataIter(EVAL_FILE, BATCH_SIZE)
-    #     loss = eval_epoch(target_lstm, eval_iter, gen_criterion)
-    #     print('Batch [%d] True Loss: %f' % (total_batch, loss))
+    '''
+    if total_batch % 1 == 0 or total_batch == TOTAL_BATCH - 1:
+        samples = generate_samples(generator, BATCH_SIZE, GENERATED_NUM, EVAL_FILE)
+        eval_iter = GenDataIter(EVAL_FILE, BATCH_SIZE)
+        loss = eval_epoch(target_lstm, eval_iter, gen_criterion)
+        print('Batch [%d] True Loss: %f' % (total_batch, loss))
+    '''
     rollout.update_params()
     
     for _ in range(4):
-        generate_samples(generator, BATCH_SIZE, GENERATED_NUM, NEGATIVE_FILE)
-        dis_data_iter = DisDataIter(POSITIVE_FILE, NEGATIVE_FILE, BATCH_SIZE)
+        samples = generate_samples(generator, BATCH_SIZE, GENERATED_NUM)
+        dis_data_iter = DisDataIter(train_states, samples, BATCH_SIZE)
         for _ in range(2):
             loss = train_epoch(discriminator, dis_data_iter, dis_criterion, dis_optimizer)
 

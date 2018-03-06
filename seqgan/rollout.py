@@ -24,7 +24,7 @@ class Rollout(object):
     def get_reward(self, x, num, discriminator):
         """
         Args:
-            x : (batch_size, seq_len) input data
+            x : (batch_size, seq_len, state_dim) input data
             num : roll-out number
             discriminator : discrimanator model
         """
@@ -34,7 +34,7 @@ class Rollout(object):
         for i in range(num):
             for l in range(1, seq_len):
                 data = x[:, 0:l]
-                samples = self.own_model.sample(batch_size, seq_len, data)
+                samples, _ = self.own_model.sample(batch_size, seq_len, data)
                 pred = discriminator(samples)
                 pred = pred.cpu().data[:,1].numpy()
                 if i == 0:

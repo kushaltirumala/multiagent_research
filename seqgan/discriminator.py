@@ -23,7 +23,7 @@ class Discriminator(nn.Module):
             x: (batch_size * seq_len * state_dim)
         """
         output, hidden = self.gru(x) 
-        prob = self.softmax(self.lin(output))[:, 0, :]
+        prob = self.softmax(self.lin(output))[:, -1, :]
         return prob
 
     def init_parameters(self):
