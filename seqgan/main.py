@@ -161,8 +161,8 @@ def load_expert_data(num):
         Data.append(data)
         Actions.append(action)
 
-    Data = np.stack(Data)[:, :, 2:12]
-    Actions = np.stack(Actions)[:, :, 2:12]
+    Data = np.stack(Data)
+    Actions = np.stack(Actions)
     
     tot_data = Data.shape[0]
     #rand_ind = np.random.permutation(tot_data)
