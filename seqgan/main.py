@@ -61,7 +61,7 @@ def generate_samples(model, batch_size, generated_num):
         samples.append(sample)
     return np.asarray(samples)
 
-def train_epoch(model, data_iter, criterion, optimizer):
+def train_epoch(model, data_iter, criterion, optimizer, generator=True):
     total_loss = 0.
     total_words = 0.
     for (data, target) in data_iter:#tqdm(
@@ -71,7 +71,9 @@ def train_epoch(model, data_iter, criterion, optimizer):
         if opt.cuda:
             data, target = data.cuda(), target.cuda()
         target = target.float()
-        pred = model.forward(data)
+        pred = model.forward(data.float())
+        if generator:
+            pred = pred[0]
         loss = criterion(pred, target)
         total_loss += loss.data[0]
         total_words += data.size(0) * data.size(1)
@@ -113,7 +115,6 @@ class GANLoss(nn.Module):
         loss =  -torch.sum(loss)
         return loss
 
-# transfer a 1-d vector into a string
 def to_string(x):
     ret = ""
     for i in range(x.shape[0]):
@@ -225,7 +226,7 @@ gen_gan_loss = GANLoss()
 gen_gan_optm = optim.Adam(generator.parameters())
 if opt.cuda:
     gen_gan_loss = gen_gan_loss.cuda()
-gen_criterion = nn.NLLLoss(size_average=False)
+gen_criterion = nn.BCELoss(size_average=False)
 if opt.cuda:
     gen_criterion = gen_criterion.cuda()
 dis_criterion = nn.NLLLoss(size_average=False)

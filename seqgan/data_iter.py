@@ -13,8 +13,8 @@ class GenDataIter(object):
     def __init__(self, states, actions, batch_size):
         super(GenDataIter, self).__init__()
         self.batch_size = batch_size
-        self.states = torch.from_numpy(states)
-        self.actions = torch.from_numpy(actions)
+        self.states = states
+        self.actions = actions
         self.data_num = self.states.shape[0]
         self.indices = range(self.data_num)
         self.num_batches = int(math.ceil(float(self.data_num)/self.batch_size))
@@ -38,7 +38,7 @@ class GenDataIter(object):
         data = self.states[self.idx: self.idx+self.batch_size, :, :]
         target = self.actions[self.idx: self.idx+self.batch_size, :, :]
         self.idx += self.batch_size
-        return data, target
+        return torch.from_numpy(data), torch.from_numpy(target)
 
 class DisDataIter(object):
     """ Toy data iter to load digits"""
