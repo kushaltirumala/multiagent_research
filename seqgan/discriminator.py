@@ -2,44 +2,29 @@
 
 import os
 import random
-
 import numpy as np
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
 class Discriminator(nn.Module):
-    """A CNN for text classification
-
-    architecture: Embedding >> Convolution >> Max-pooling >> Softmax
-    """
-
-    def __init__(self, num_classes, vocab_size, emb_dim, filter_sizes, num_filters, dropout):
+    def __init__(self, num_classes, state_dim, hidden_dim, num_layers=2):
         super(Discriminator, self).__init__()
-        self.emb = nn.Embedding(vocab_size, emb_dim)
-        self.convs = nn.ModuleList([
-            nn.Conv2d(1, n, (f, emb_dim)) for (n, f) in zip(num_filters, filter_sizes)
-        ])
-        self.highway = nn.Linear(sum(num_filters), sum(num_filters))
-        self.dropout = nn.Dropout(p=dropout)
-        self.lin = nn.Linear(sum(num_filters), num_classes)
+        self.hidden_dim = hidden_dim
+        self.state_dim = state_dim
+        self.gru = nn.GRU(state_dim, hidden_dim, num_layers, batch_first=True)
+        self.lin = nn.Linear(hidden_dim, num_classes)
         self.softmax = nn.LogSoftmax()
         self.init_parameters()
     
     def forward(self, x):
         """
         Args:
-            x: (batch_size * seq_len)
+            x: (batch_size * seq_len * state_dim)
         """
-        emb = self.emb(x).unsqueeze(1)  # batch_size * 1 * seq_len * emb_dim
-        convs = [F.relu(conv(emb)).squeeze(3) for conv in self.convs]  # [batch_size * num_filter * length]
-        pools = [F.max_pool1d(conv, conv.size(2)).squeeze(2) for conv in convs] # [batch_size * num_filter]
-        pred = torch.cat(pools, 1)  # batch_size * num_filters_sum
-        highway = self.highway(pred)
-        pred = F.sigmoid(highway) *  F.relu(highway) + (1. - F.sigmoid(highway)) * pred
-        pred = self.softmax(self.lin(self.dropout(pred)))
-        return pred
+        output, hidden = self.gru(x) 
+        prob = self.softmax(self.lin(output))[:, 0, :]
+        return prob
 
     def init_parameters(self):
         for param in self.parameters():

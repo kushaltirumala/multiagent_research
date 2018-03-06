@@ -11,7 +11,7 @@ from utils.math import *
 
 class Generator(nn.Module):
     """Generator """
-    def __init__(self, state_dim, hidden_dim, action_dim, use_cuda, log_std=0.0, num_layers=3):
+    def __init__(self, state_dim, hidden_dim, action_dim, use_cuda, log_std=0.0, num_layers=2):
         super(Generator, self).__init__()
         self.state_dim = state_dim
         self.hidden_dim = hidden_dim

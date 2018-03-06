@@ -17,7 +17,6 @@ from torch.autograd import Variable
 
 from generator import Generator
 from discriminator import Discriminator
-from target_lstm import TargetLSTM
 from rollout import Rollout
 from data_iter import GenDataIter, DisDataIter
 # ================== Parameter Definition =================
@@ -42,29 +41,25 @@ if opt.cuda is not None and opt.cuda >= 0:
     opt.cuda = True
 
 # Genrator Parameters
-g_emb_dim = 22
-g_hidden_dim = 22
+g_state_dim = 22
+g_hidden_dim = 44
+g_action_dim = 22
 g_sequence_len = 70
 
 # Discriminator Parameters
-d_emb_dim = 22
-d_filter_sizes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20]
-d_num_filters = [100, 200, 200, 200, 200, 100, 100, 100, 100, 100, 160, 160]
-
-d_dropout = 0.75
 d_num_class = 2
+d_state_dim = 22
+d_hidden_dim = 44
 
 
 
-def generate_samples(model, batch_size, generated_num, output_file):
+
+def generate_samples(model, batch_size, generated_num):
     samples = []
     for _ in range(int(generated_num / batch_size)):
-        sample = model.sample(batch_size, g_sequence_len).cpu().data.numpy().tolist()
-        samples.extend(sample)
-    with open(output_file, 'w') as fout:
-        for sample in samples:
-            string = ' '.join([str(s) for s in sample])
-            fout.write('%s\n' % string)
+        sample = model.sample(batch_size, g_sequence_len).cpu().data.numpy()
+        samples.append(sample)
+    return np.asarray(samples)
 
 def train_epoch(model, data_iter, criterion, optimizer):
     total_loss = 0.
@@ -130,61 +125,83 @@ class GANLoss(nn.Module):
         loss =  -torch.sum(loss)
         return loss
 
+# transfer a 1-d vector into a string
+def to_string(x):
+    ret = ""
+    for i in range(x.shape[0]):
+        ret += "{:.3f} ".format(x[i])
+    return ret
 
-def load_expert_data(directory):
-    train_addr = directory
+def load_expert_data(num):
+    train_addr = "anon/train/"
     addrs = os.listdir(train_addr)
     Data = []
-    Speeds = []
-    Starts = []
-    for d in addrs[:20000]:
+    Actions = []
+    for d in addrs:
+        num -= 1
+        if num < 0:
+            break
+        
         seq_len = int(d.split('-')[2][:2])
         if seq_len != 70:
             continue
         content = open(train_addr + d, 'rb').read()
         data = np.zeros((seq_len, 22), dtype=np.float)
-        speeds = np.zeros((seq_len-1, 22), dtype=np.float)
+        action = np.zeros((seq_len-1, 22), dtype=np.float)
         for i in range(seq_len):
             pre_data = np.asarray(struct.unpack('16i', content[64*i:64*i+64]), dtype=np.float)
             for j in range(11):
                 data[i, 2*j] = np.clip(pre_data[j] / 360, 0, 399) / 400
                 data[i, 2*j+1] = np.clip(pre_data[j] % 360, 0, 359) / 360
         
-            if i == 0:
-                Starts.append(data[i])
             if i > 0:
-                speeds[i-1] = data[i] - data[i-1]
+                action[i-1] = data[i] - data[i-1]
         
         data = data[:-1]
         Data.append(data)
-        Speeds.append(speeds)
+        Actions.append(action)
 
-    Data = np.stack(Data)
-    Speeds = np.stack(Speeds)
-    Starts = np.stack(Starts)
-    return Data, Speeds, Starts
+    Data = np.stack(Data)[:, :, 2:12]
+    Actions = np.stack(Actions)[:, :, 2:12]
+    
+    tot_data = Data.shape[0]
+    #rand_ind = np.random.permutation(tot_data)
+    #Data, Actions = Data[rand_ind], Actions[rand_ind]
+    train_data, train_action = Data[:int(tot_data*0.8)], Actions[:int(tot_data*0.8)]
+    val_data, val_action = Data[int(tot_data*0.8):], Actions[int(tot_data*0.8):]
+    
+    ave_stepsize = np.mean(np.abs(train_action), axis = (0, 1))
+    std_stepsize = np.std(train_action, axis = (0, 1))
+    ave_length = np.mean(np.sum(np.sqrt(np.square(train_action[:, :, ::2]) + np.square(train_action[:, :, 1::2])), axis = 1), axis = 0)
+    ave_near_bound = np.mean((train_data < 1.0 / 100.0) + (train_data > 99.0 / 100.0), axis = (0, 1))
+    print(ave_stepsize, std_stepsize, ave_length, ave_near_bound)
+    with open("val_stats.txt", "a") as text_file:
+        text_file.write('Expert:\n')
+        text_file.write('ave_stepsize: ' + to_string(ave_stepsize) + '\n')
+        text_file.write('std_stepsize: ' + to_string(std_stepsize) + '\n')
+        text_file.write('ave_length: ' + to_string(ave_length) + '\n')
+        text_file.write('ave_near_bound: ' + to_string(ave_near_bound) + '\n')
+        text_file.write('\n')
+    
+    print("train_data.shape:", train_data.shape, "val_data.shape:", val_data.shape)
+    return train_data, train_action, val_data, val_action, ave_stepsize, std_stepsize, ave_length, ave_near_bound
 
 print "starting to load to data"
-data, speeds, starts = load_expert_data("anon/train/")
+train_states, train_actions, val_states, val_actions, exp_ave_stepsize, exp_std_stepsize, exp_ave_length, exp_ave_near_bound \
+    = load_expert_data(20000)
 print "done loading data"
-# def main():
 random.seed(SEED)
 np.random.seed(SEED)
 
 # Define Networks
-generator = Generator(VOCAB_SIZE, g_emb_dim, g_hidden_dim, opt.cuda)
-discriminator = Discriminator(d_num_class, VOCAB_SIZE, d_emb_dim, d_filter_sizes, d_num_filters, d_dropout)
-# target_lstm = TargetLSTM(VOCAB_SIZE, g_emb_dim, g_hidden_dim, opt.cuda)
+generator = Generator(g_state_dim, g_hidden_dim, g_action_dim, opt.cuda, num_layers=1)
+discriminator = Discriminator(d_num_class, d_state_dim, d_hidden_dim, num_layers=1)
 if opt.cuda:
     generator = generator.cuda()
     discriminator = discriminator.cuda()
-    target_lstm = target_lstm.cuda()
-# Generate toy data using target lstm
-# print('Generating data ...')
-# generate_samples(target_lstm, BATCH_SIZE, GENERATED_NUM, POSITIVE_FILE)
 
 # Load data from file
-gen_data_iter = GenDataIter(data, BATCH_SIZE)
+gen_data_iter = GenDataIter(train_states, train_actions, BATCH_SIZE)
 
 # Pretrain Generator using MLE
 gen_criterion = nn.BCELoss(size_average=False)
