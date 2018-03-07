@@ -47,7 +47,7 @@ class DisDataIter(object):
         self.batch_size = batch_size
         self.real_data = real_data
         self.fake_data = fake_data
-        self.data = np.concatenate(self.real_data, self.fake_data, axis=0).tolist()
+        self.data = np.concatenate((self.real_data, self.fake_data), axis=0).tolist()
         self.labels = [1 for _ in range(self.real_data.shape[0])] +\
                         [0 for _ in range(self.fake_data.shape[0])]
         self.pairs = zip(self.data, self.labels)

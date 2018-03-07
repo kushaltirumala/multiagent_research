@@ -28,7 +28,7 @@ print(opt)
 
 # Basic Training Paramters
 SEED = 88
-BATCH_SIZE = 29
+BATCH_SIZE = 37
 TOTAL_BATCH = 10
 GENERATED_NUM = 80
 NEGATIVE_FILE = 'training.data'
@@ -57,9 +57,9 @@ d_hidden_dim = 44
 def generate_samples(model, batch_size, generated_num):
     samples = []
     for _ in range(int(generated_num / batch_size)):
-        sample = model.sample(batch_size, g_sequence_len)[0].cpu().data.numpy()
+        sample = model.sample(batch_size, g_sequence_len-1)[0].cpu().data.numpy()
         samples.append(sample)
-    return np.asarray(samples)
+    return np.vstack(samples)
 
 def train_epoch(model, data_iter, criterion, optimizer, generator=True):
     total_loss = 0.
@@ -144,6 +144,7 @@ def load_expert_data(num):
             continue
         content = open(train_addr + d, 'rb').read()
         data = np.zeros((seq_len, 22), dtype=np.float)
+        # print data.shape
         action = np.zeros((seq_len-1, 22), dtype=np.float)
         for i in range(seq_len):
             pre_data = np.asarray(struct.unpack('16i', content[64*i:64*i+64]), dtype=np.float)
@@ -154,17 +155,21 @@ def load_expert_data(num):
             if i > 0:
                 action[i-1] = data[i] - data[i-1]
         
+        # print data.shape
         data = data[:-1]
+        # print data.shape
         Data.append(data)
         Actions.append(action)
 
     Data = np.stack(Data)
+    # print Data.shape
     Actions = np.stack(Actions)
     
     tot_data = Data.shape[0]
     #rand_ind = np.random.permutation(tot_data)
     #Data, Actions = Data[rand_ind], Actions[rand_ind]
     train_data, train_action = Data[:int(tot_data*0.8)], Actions[:int(tot_data*0.8)]
+    print train_data.shape
     val_data, val_action = Data[int(tot_data*0.8):], Actions[int(tot_data*0.8):]
     
     ave_stepsize = np.mean(np.abs(train_action), axis = (0, 1))
