@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
 import os
+import math
 import random
-import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
-from utils.math import *
+from utils.math_utils import *
 
 class Generator(nn.Module):
     """Generator """
@@ -22,6 +22,7 @@ class Generator(nn.Module):
         self.gru = nn.GRU(state_dim, hidden_dim, num_layers, batch_first=True)
         self.lin = nn.Linear(hidden_dim, action_dim)
         self.init_params()
+        self.constant = np.log(2*np.pi)
 
         self.action_log_std = nn.Parameter(torch.ones(1, action_dim) * log_std)
 
@@ -65,7 +66,9 @@ class Generator(nn.Module):
             actions: (batch_size, seq_len, action_dim)
         """
         action_mean, action_log_std, action_std, _ = self.forward(x)
-        return normal_log_density(actions, action_mean, action_log_std, action_std)
+        var = action_std.pow(2)
+        log_density = -(actions - action_mean).pow(2) / (2 * var) - 0.5 * np.log(2 * math.pi) - action_log_std
+        return log_density.sum(-1, keepdim=True)
 
     def select_action(self, x, h, test=False):
         action_mean, _, action_std, hidden = self.forward(x, h)

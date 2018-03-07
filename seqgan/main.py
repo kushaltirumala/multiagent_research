@@ -66,20 +66,28 @@ def train_epoch(model, data_iter, criterion, optimizer, generator=True):
     total_words = 0.
     for (data, target) in data_iter:#tqdm(
         #data_iter, mininterval=2, desc=' - Training', leave=False):
-        data = Variable(data)
-        target = Variable(target)
+        data = Variable(data).float()
+        target = Variable(target).float()
         if opt.cuda:
             data, target = data.cuda(), target.cuda()
-        target = target.float()
-        pred = model.forward(data.float())
+
         if generator:
-            pred = pred[0]
-        loss = criterion(pred, target)
-        total_loss += loss.data[0]
-        total_words += data.size(0) * data.size(1)
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
+            prob_logs = model.get_log_prob(data, target)
+            loss = -prob_logs.mean()
+            total_loss += loss.data[0]
+            total_words += data.size(0) * data.size(1)
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+        else:
+            print "Discriminator training"
+            
+        # loss = criterion(pred, target)
+        # total_loss += loss.data[0]
+        # total_words += data.size(0) * data.size(1)
+        # optimizer.zero_grad()
+        # loss.backward()
+        # optimizer.step()
     data_iter.reset()
     return math.exp(total_loss / total_words)
 
