@@ -71,7 +71,7 @@ class Generator(nn.Module):
         return log_density.sum(-1, keepdim=True)
 
     def select_action(self, x, h, test=False):
-        action_mean, _, action_std, hidden = self.forward(x, h)
+        action_mean, _, action_std, hidden = self.step(x, h)
         action = torch.normal(action_mean, action_std)
         if not test:
             return action, hidden
@@ -95,23 +95,25 @@ class Generator(nn.Module):
 
         return x
 
-    def sample(self, batch_size, seq_len, x): ## x is initial state or roll-out histories
+    def sample(self, batch_size, seq_len, x=None): ## x is initial state or roll-out histories
         h = self.init_hidden(batch_size)
         samples = []
         actions = []
-        given_len = x.size(1)
-        lis = x.chunk(x.size(1), dim=1)
-        for i in range(given_len):
-            action, h = self.select_action(lis[i], h)
-            samples.append(lis[i])
-            actions.append(action)
-
-        x = self.env(x, action)
-        for i in range(given_len, seq_len):
-            samples.append(x)
-            action, h = self.select_action(x, h)
-            actions.append(action)
+        if x is None: # means not doing rollout, just generating sample trajectories
+            x = Variable(torch.zeros(batch_size, 1, 22)).float()
+            for i in range(seq_len):
+                samples.append(x)
+                action, h = self.select_action(x, h)
+                x = action
+                actions.append(action)
+        else:
+            given_len = x.size(1)
             x = self.env(x, action)
+            for i in range(given_len, seq_len):
+                samples.append(x)
+                action, h = self.select_action(x, h)
+                actions.append(action)
+                x = self.env(x, action)
 
         output = torch.cat(samples, dim=1)
         actions = torch.cat(actions, dim=1)

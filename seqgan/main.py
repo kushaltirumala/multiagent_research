@@ -57,7 +57,7 @@ d_hidden_dim = 44
 def generate_samples(model, batch_size, generated_num):
     samples = []
     for _ in range(int(generated_num / batch_size)):
-        sample = model.sample(batch_size, g_sequence_len).cpu().data.numpy()
+        sample = model.sample(batch_size, g_sequence_len)[0].cpu().data.numpy()
         samples.append(sample)
     return np.asarray(samples)
 
@@ -209,7 +209,7 @@ print('Pretrain with BCE ...')
 for epoch in range(PRE_EPOCH_NUM):
     loss = train_epoch(generator, gen_data_iter, gen_criterion, gen_optimizer)
     print('Epoch [%d] Model Loss: %f'% (epoch, loss))
-    generate_samples(generator, BATCH_SIZE, GENERATED_NUM, EVAL_FILE)
+    generate_samples(generator, BATCH_SIZE, GENERATED_NUM)
     # eval_iter = GenDataIter(EVAL_FILE, BATCH_SIZE)
     # loss = eval_epoch(target_lstm, eval_iter, gen_criterion)
     # print('Epoch [%d] True Loss: %f' % (epoch, loss))
@@ -221,8 +221,8 @@ if opt.cuda:
     dis_criterion = dis_criterion.cuda()
 print('Pretrain Discriminator ...')
 for epoch in range(5):
-    generate_samples(generator, BATCH_SIZE, GENERATED_NUM, NEGATIVE_FILE)
-    dis_data_iter = DisDataIter(data, NEGATIVE_FILE, BATCH_SIZE)
+    generated_samples = generate_samples(generator, BATCH_SIZE, GENERATED_NUM)
+    dis_data_iter = DisDataIter(train_states, generated_samples, BATCH_SIZE)
     for _ in range(3):
         loss = train_epoch(discriminator, dis_data_iter, dis_criterion, dis_optimizer)
         print('Epoch [%d], loss: %f' % (epoch, loss))
