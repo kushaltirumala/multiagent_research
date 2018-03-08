@@ -14,7 +14,6 @@ class Discriminator(nn.Module):
         self.state_dim = state_dim
         self.gru = nn.GRU(state_dim, hidden_dim, num_layers, batch_first=True)
         self.lin = nn.Linear(hidden_dim, num_classes)
-        self.softmax = nn.LogSoftmax()
         self.init_parameters()
     
     def forward(self, x):
@@ -23,7 +22,7 @@ class Discriminator(nn.Module):
             x: (batch_size * seq_len * state_dim)
         """
         output, hidden = self.gru(x) 
-        prob = self.softmax(self.lin(output))[:, -1, :]
+        prob = F.sigmoid(self.lin(output))[:, -1, :]
         return prob
 
     def init_parameters(self):

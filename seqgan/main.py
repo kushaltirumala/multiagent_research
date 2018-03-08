@@ -28,7 +28,7 @@ print(opt)
 
 # Basic Training Paramters
 SEED = 88
-BATCH_SIZE = 37
+BATCH_SIZE = 29
 TOTAL_BATCH = 10
 GENERATED_NUM = 80
 NEGATIVE_FILE = 'training.data'
@@ -80,7 +80,15 @@ def train_epoch(model, data_iter, criterion, optimizer, generator=True):
             loss.backward()
             optimizer.step()
         else:
-            print "Discriminator training"
+            # note here target is label
+            prob = discriminator(data)
+            prob = prob[:, 1]
+            loss = criterion(prob, target)
+            total_loss += loss.data[0]
+            total_words += data.size(0) * data.size(1)
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
             
         # loss = criterion(pred, target)
         # total_loss += loss.data[0]
@@ -220,7 +228,7 @@ for epoch in range(PRE_EPOCH_NUM):
     # print('Epoch [%d] True Loss: %f' % (epoch, loss))
 
 # Pretrain Discriminator
-dis_criterion = nn.NLLLoss(size_average=False)
+dis_criterion = nn.BCELoss(size_average=False)
 dis_optimizer = optim.Adam(discriminator.parameters())
 if opt.cuda:
     dis_criterion = dis_criterion.cuda()
@@ -229,7 +237,7 @@ for epoch in range(5):
     generated_samples = generate_samples(generator, BATCH_SIZE, GENERATED_NUM)
     dis_data_iter = DisDataIter(train_states, generated_samples, BATCH_SIZE)
     for _ in range(3):
-        loss = train_epoch(discriminator, dis_data_iter, dis_criterion, dis_optimizer)
+        loss = train_epoch(discriminator, dis_data_iter, dis_criterion, dis_optimizer, generator=False)
         print('Epoch [%d], loss: %f' % (epoch, loss))
 # Adversarial Training 
 rollout = Rollout(generator, 0.8)
