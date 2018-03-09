@@ -35,6 +35,7 @@ class Rollout(object):
             for l in range(1, seq_len):
                 data = x[:, 0:l]
                 samples, _ = self.own_model.sample(batch_size, seq_len, data)
+                samples = Variable(samples)
                 pred = discriminator(samples)
                 pred = pred.cpu().data[:,1].numpy()
                 if i == 0:
@@ -43,7 +44,7 @@ class Rollout(object):
                     rewards[l-1] += pred
 
             # for the last token
-            pred = discriminator(x)
+            pred = discriminator(Variable(x))
             pred = pred.cpu().data[:, 1].numpy()
             if i == 0:
                 rewards.append(pred)

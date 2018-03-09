@@ -250,7 +250,7 @@ if opt.cuda:
 gen_criterion = nn.BCELoss(size_average=False)
 if opt.cuda:
     gen_criterion = gen_criterion.cuda()
-dis_criterion = nn.NLLLoss(size_average=False)
+dis_criterion = nn.BCELoss(size_average=False)
 dis_optimizer = optim.Adam(discriminator.parameters())
 if opt.cuda:
     dis_criterion = dis_criterion.cuda()
@@ -259,16 +259,18 @@ for total_batch in range(TOTAL_BATCH):
     for it in range(1):
         samp_ind = np.random.choice(train_states.shape[0], BATCH_SIZE)
         mod_samples = torch.from_numpy(train_states[samp_ind].copy())
-        starts = Variable(mod_samples[:, :1, :].clone())
+        starts = mod_samples[:, :1, :].clone().float()
 
         samples, targets = generator.sample(BATCH_SIZE, g_sequence_len, starts)
         # calculate the reward
         rewards = rollout.get_reward(samples, 16, discriminator)
-        rewards = Variable(torch.Tensor(rewards))
+        rewards = Variable(torch.Tensor(rewards)).contiguous().view((-1,))
         if opt.cuda:
             rewards = torch.exp(rewards.cuda()).contiguous().view((-1,))
+        samples = Variable(samples)
         prob = generator.get_log_prob(samples, targets).contiguous().view((-1,))
         loss = gen_gan_loss(prob, rewards)
+        print "adversial training loss - generator[%d]: %f" % (total_batch, loss)
         gen_gan_optm.zero_grad()
         loss.backward()
         gen_gan_optm.step()
@@ -286,5 +288,7 @@ for total_batch in range(TOTAL_BATCH):
         samples = generate_samples(generator, BATCH_SIZE, GENERATED_NUM)
         dis_data_iter = DisDataIter(train_states, samples, BATCH_SIZE)
         for _ in range(2):
-            loss = train_epoch(discriminator, dis_data_iter, dis_criterion, dis_optimizer)
+            loss = train_epoch(discriminator, dis_data_iter, dis_criterion, dis_optimizer, generator=False)
+            print "adversial training loss - discriminator [%d]: %f" % (total_batch, loss)
+
 

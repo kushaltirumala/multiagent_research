@@ -81,10 +81,10 @@ class Generator(nn.Module):
     def env(self, x, a):
         """
         Args:
-            x: (batch_size, 1, state_dim)
+            x: (batch_size, 1, state_dim) (x should be a FloatTensor)
             actions: (batch_size, 1, action_dim)
         """
-        x += a
+        x += a.data
         if self.use_cuda:
             x = x.cpu()
         x = x.numpy()   ## it seems we don't have clip in pytorch, so have to transfer it to numpy
@@ -108,10 +108,9 @@ class Generator(nn.Module):
                 actions.append(action)
         else:
             given_len = x.size(1)
-            x = self.env(x, action)
             for i in range(given_len, seq_len):
                 samples.append(x)
-                action, h = self.select_action(x, h)
+                action, h = self.select_action(Variable(x), h)
                 actions.append(action)
                 x = self.env(x, action)
 
