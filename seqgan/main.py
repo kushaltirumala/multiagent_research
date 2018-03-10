@@ -95,7 +95,7 @@ def train_epoch(model, data_iter, criterion, optimizer, generator=True):
     total_loss = []
     total_words = 0.
     for (data, target) in data_iter:#tqdm(
-        #data_iter, mininterval=2, desc=' - Training', leave=False):
+        #data_iter, mininterval=2,  desc=' - Training', leave=False):
         data = Variable(data).float()
         target = Variable(target).float()
         if opt.cuda:
