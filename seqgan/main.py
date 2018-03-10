@@ -234,8 +234,8 @@ if __name__ == "__main__":
     np.random.seed(SEED)
 
     # Define Networks
-    generator = Generator(g_state_dim, g_hidden_dim, g_action_dim, opt.cuda, num_layers=2)
-    discriminator = Discriminator(d_num_class, d_state_dim, d_hidden_dim, num_layers=2)
+    generator = Generator(g_state_dim, g_hidden_dim, g_action_dim, opt.cuda, num_layers=1)
+    discriminator = Discriminator(d_num_class, d_state_dim, d_hidden_dim, num_layers=1)
     if opt.cuda:
         generator = generator.cuda()
         discriminator = discriminator.cuda()
@@ -245,7 +245,7 @@ if __name__ == "__main__":
     gen_val_data_iter = GenDataIter(val_states, val_actions, BATCH_SIZE)
 
     # Pretrain Generator using MLE
-    gen_criterion = nn.BCELoss(size_average=False)
+    # gen_criterion = nn.BCELoss(size_average=False)
     gen_optimizer = optim.Adam(generator.parameters())
     if opt.cuda:
         gen_criterion = gen_criterion.cuda()
