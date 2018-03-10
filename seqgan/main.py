@@ -47,33 +47,33 @@ if opt.cuda is not None and opt.cuda >= 0:
 
 # Genrator Parameters
 g_state_dim = 22
-g_hidden_dim = 44
+g_hidden_dim = 256
 g_action_dim = 22
 g_sequence_len = 70
 
 # Discriminator Parameters
 d_num_class = 2
 d_state_dim = 22
-d_hidden_dim = 44
+d_hidden_dim = 256
 
 vis = visdom.Visdom()
 graph_pretrain_generator = None
 
 
 def load_model(path):
-    print "Loading learned model"
+    print ("Loading learned model")
     generator, discriminator = pickle.load(open(path, 'rb'))
     return generator, discriminator
 
 def save_model(generator, discriminator, path):
-    print "Saving Model"
+    print ("Saving Model")
     if opt.cuda:
         generator, discriminator = generator.cpu(), discriminator.cpu()
     pickle.dump((generator, discriminator), open(path, 'wb'))
 
 # draws FIRST trajectory for the OFFENSE team
 def draw_samples(states, show_image=True, save_image=False, name=None):
-    print "Drawing"
+    print ("Drawing")
     draw_data = states[0, :, 2:12]
     normal = [50.0, 47.0] * 5
     draw_data = draw_data * normal
@@ -92,7 +92,7 @@ def generate_samples(model, batch_size, generated_num):
     return np.vstack(samples)
 
 def train_epoch(model, data_iter, criterion, optimizer, generator=True):
-    total_loss = 0.
+    total_loss = []
     total_words = 0.
     for (data, target) in data_iter:#tqdm(
         #data_iter, mininterval=2, desc=' - Training', leave=False):
@@ -102,10 +102,11 @@ def train_epoch(model, data_iter, criterion, optimizer, generator=True):
             data, target = data.cuda(), target.cuda()
 
         if generator:
+            print(data, target)
             prob_logs = model.get_log_prob(data, target)
+            exit()
             loss = -prob_logs.mean()
-            total_loss += loss.data[0]
-            total_words += data.size(0) * data.size(1)
+            total_loss.append(loss.data[0])
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -114,8 +115,7 @@ def train_epoch(model, data_iter, criterion, optimizer, generator=True):
             prob = discriminator(data)
             prob = prob[:, 1]
             loss = criterion(prob, target)
-            total_loss += loss.data[0]
-            total_words += data.size(0) * data.size(1)
+            total_loss.append(loss.data[0])
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -127,7 +127,7 @@ def train_epoch(model, data_iter, criterion, optimizer, generator=True):
         # loss.backward()
         # optimizer.step()
     data_iter.reset()
-    return math.exp(total_loss / total_words)
+    return math.exp(np.mean(total_loss))
 
 def eval_epoch(model, data_iter, criterion):
     total_loss = 0.
@@ -206,7 +206,7 @@ def load_expert_data(num):
     #rand_ind = np.random.permutation(tot_data)
     #Data, Actions = Data[rand_ind], Actions[rand_ind]
     train_data, train_action = Data[:int(tot_data*0.8)], Actions[:int(tot_data*0.8)]
-    print train_data.shape
+    print(train_data.shape)
     val_data, val_action = Data[int(tot_data*0.8):], Actions[int(tot_data*0.8):]
     
     ave_stepsize = np.mean(np.abs(train_action), axis = (0, 1))
@@ -226,10 +226,10 @@ def load_expert_data(num):
     return train_data, train_action, val_data, val_action, ave_stepsize, std_stepsize, ave_length, ave_near_bound
 
 if __name__ == "__main__":
-    print "Starting to load to data"
+    print ("Starting to load to data")
     train_states, train_actions, val_states, val_actions, exp_ave_stepsize, exp_std_stepsize, exp_ave_length, exp_ave_near_bound \
-        = load_expert_data(20000)
-    print "Done loading data"
+        = load_expert_data(5000)
+    print ("Done loading data")
     random.seed(SEED)
     np.random.seed(SEED)
 
@@ -245,8 +245,8 @@ if __name__ == "__main__":
     gen_val_data_iter = GenDataIter(val_states, val_actions, BATCH_SIZE)
 
     # Pretrain Generator using MLE
-    # gen_criterion = nn.BCELoss(size_average=False)
-    gen_optimizer = optim.Adam(generator.parameters())
+    gen_criterion = nn.BCELoss(size_average=False)
+    gen_optimizer = optim.Adam(generator.parameters(), lr=0.01)
     if opt.cuda:
         gen_criterion = gen_criterion.cuda()
     print('Pretrain with log probs ...')
