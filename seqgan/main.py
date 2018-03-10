@@ -100,7 +100,7 @@ def train_epoch(model, data_iter, criterion, optimizer, generator=True):
         target = Variable(target).float()
         if opt.cuda:
             data, target = data.cuda(), target.cuda()
-
+ 
         if generator:
             print(data, target)
             prob_logs = model.get_log_prob(data, target)
