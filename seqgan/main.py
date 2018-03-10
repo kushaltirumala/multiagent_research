@@ -38,7 +38,8 @@ GENERATED_NUM = 80
 NEGATIVE_FILE = 'training.data'
 EVAL_FILE = 'evaluation.data'
 VOCAB_SIZE = 22
-PRE_EPOCH_NUM = 50
+PRE_EPOCH_NUM = 30
+VAL_FREQ = 5
 
 if opt.cuda is not None and opt.cuda >= 0:
     torch.cuda.set_device(opt.cuda)
@@ -56,6 +57,7 @@ d_state_dim = 22
 d_hidden_dim = 44
 
 vis = visdom.Visdom()
+graph_pretrain_generator = None
 
 
 def load_model(path):
@@ -232,14 +234,15 @@ if __name__ == "__main__":
     np.random.seed(SEED)
 
     # Define Networks
-    generator = Generator(g_state_dim, g_hidden_dim, g_action_dim, opt.cuda, num_layers=1)
-    discriminator = Discriminator(d_num_class, d_state_dim, d_hidden_dim, num_layers=1)
+    generator = Generator(g_state_dim, g_hidden_dim, g_action_dim, opt.cuda, num_layers=2)
+    discriminator = Discriminator(d_num_class, d_state_dim, d_hidden_dim, num_layers=2)
     if opt.cuda:
         generator = generator.cuda()
         discriminator = discriminator.cuda()
 
     # Load data from file
     gen_data_iter = GenDataIter(train_states, train_actions, BATCH_SIZE)
+    gen_val_data_iter = GenDataIter(val_states, val_actions, BATCH_SIZE)
 
     # Pretrain Generator using MLE
     gen_criterion = nn.BCELoss(size_average=False)
@@ -248,9 +251,15 @@ if __name__ == "__main__":
         gen_criterion = gen_criterion.cuda()
     print('Pretrain with log probs ...')
     for epoch in range(PRE_EPOCH_NUM):
+        if epoch % VAL_FREQ == 0:
+            validation_loss = train_epoch(generator, gen_val_data_iter, gen_criterion, gen_optimizer)
+            print('Epoch [%d] Model Validation Loss: %f'% (epoch, validation_loss))
+
         loss = train_epoch(generator, gen_data_iter, gen_criterion, gen_optimizer)
         print('Epoch [%d] Model Loss: %f'% (epoch, loss))
-        generate_samples(generator, BATCH_SIZE, GENERATED_NUM)
+        # generate_samples(generator, BATCH_SIZE, GENERATED_NUM)
+        update = None if graph_pretrain_generator is None else 'append'
+        graph_pretrain_generator = vis.line(X = np.array([epoch]), Y = np.array([loss]), win = graph_pretrain_generator, update = update, opts=dict(title="pretrain policy training curve"))
 
     # Pretrain Discriminator
     dis_criterion = nn.BCELoss(size_average=False)
