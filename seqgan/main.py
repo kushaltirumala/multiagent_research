@@ -21,10 +21,12 @@ from rollout import Rollout
 from data_iter import GenDataIter, DisDataIter
 from utils.draw_tools import plot_sequences
 import pickle
+import visdom
 # ================== Parameter Definition =================
 
 parser = argparse.ArgumentParser(description='Training Parameter')
 parser.add_argument('--cuda', action='store', default=None, type=int)
+parser.add_argument('--file', action='store', default=None)
 opt = parser.parse_args()
 print(opt)
 
@@ -36,7 +38,7 @@ GENERATED_NUM = 80
 NEGATIVE_FILE = 'training.data'
 EVAL_FILE = 'evaluation.data'
 VOCAB_SIZE = 22
-PRE_EPOCH_NUM = 10
+PRE_EPOCH_NUM = 50
 
 if opt.cuda is not None and opt.cuda >= 0:
     torch.cuda.set_device(opt.cuda)
@@ -52,6 +54,9 @@ g_sequence_len = 70
 d_num_class = 2
 d_state_dim = 22
 d_hidden_dim = 44
+
+vis = visdom.Visdom()
+
 
 def load_model(path):
     print "Loading learned model"
@@ -241,7 +246,7 @@ if __name__ == "__main__":
     gen_optimizer = optim.Adam(generator.parameters())
     if opt.cuda:
         gen_criterion = gen_criterion.cuda()
-    print('Pretrain with BCE ...')
+    print('Pretrain with log probs ...')
     for epoch in range(PRE_EPOCH_NUM):
         loss = train_epoch(generator, gen_data_iter, gen_criterion, gen_optimizer)
         print('Epoch [%d] Model Loss: %f'% (epoch, loss))
@@ -305,7 +310,7 @@ if __name__ == "__main__":
                 loss = train_epoch(discriminator, dis_data_iter, dis_criterion, dis_optimizer, generator=False)
                 print "adversial training loss - discriminator [%d]: %f" % (total_batch, loss)
 
-    save_model(generator, discriminator, "saved_models/baseline_1")
+    save_model(generator, discriminator, "saved_models/"+opt.file)
 
 
 
