@@ -32,7 +32,7 @@ print(opt)
 
 # Basic Training Paramters
 SEED = 88
-BATCH_SIZE = 29
+BATCH_SIZE = 32
 TOTAL_BATCH = 10
 GENERATED_NUM = 80
 NEGATIVE_FILE = 'training.data'
@@ -41,9 +41,11 @@ VOCAB_SIZE = 22
 PRE_EPOCH_NUM = 30
 VAL_FREQ = 5
 
+'''
 if opt.cuda is not None and opt.cuda >= 0:
     torch.cuda.set_device(opt.cuda)
     opt.cuda = True
+'''
 
 # Genrator Parameters
 g_state_dim = 22
@@ -75,7 +77,7 @@ def save_model(generator, discriminator, path):
 def draw_samples(states, show_image=True, save_image=False, name=None):
     print ("Drawing")
     draw_data = states[0, :, 2:12]
-    normal = [50.0, 47.0] * 5
+    normal = [47.0, 50.0] * 5
     draw_data = draw_data * normal
     colormap = ['b', 'r', 'g', 'm', 'y']
     if show_image:
@@ -86,25 +88,34 @@ def draw_samples(states, show_image=True, save_image=False, name=None):
 
 def generate_samples(model, batch_size, generated_num):
     samples = []
+    exp_samples = []
     for _ in range(int(generated_num / batch_size)):
-        sample = model.sample(batch_size, g_sequence_len-1)[0].cpu().data.numpy()
+        # sample some sequences from train_states
+        # take the first state as our starts
+        # take the entire sequences as the ground truth
+        idxs = np.random.choice(train_states.shape[0], batch_size)
+        exp_sample = train_states[idxs].copy()
+        exp_samples.append(exp_sample)
+        starts = Variable(torch.from_numpy(exp_sample[:, 0:1, :].copy()))
+        if opt.cuda:
+            starts = starts.cuda()
+        
+        # sampling
+        sample = model.sample(batch_size, g_sequence_len, starts)[0].cpu().data.numpy()
         samples.append(sample)
-    return np.vstack(samples)
+    return np.vstack(samples), np.vstack(exp_samples)
 
 def train_epoch(model, data_iter, criterion, optimizer, generator=True):
     total_loss = []
-    total_words = 0.
     for (data, target) in data_iter:#tqdm(
         #data_iter, mininterval=2,  desc=' - Training', leave=False):
-        data = Variable(data).float()
-        target = Variable(target).float()
+        data = Variable(data)
+        target = Variable(target)
         if opt.cuda:
             data, target = data.cuda(), target.cuda()
  
         if generator:
-            print(data, target)
             prob_logs = model.get_log_prob(data, target)
-            exit()
             loss = -prob_logs.mean()
             total_loss.append(loss.data[0])
             optimizer.zero_grad()
@@ -120,14 +131,8 @@ def train_epoch(model, data_iter, criterion, optimizer, generator=True):
             loss.backward()
             optimizer.step()
             
-        # loss = criterion(pred, target)
-        # total_loss += loss.data[0]
-        # total_words += data.size(0) * data.size(1)
-        # optimizer.zero_grad()
-        # loss.backward()
-        # optimizer.step()
     data_iter.reset()
-    return math.exp(np.mean(total_loss))
+    return np.mean(total_loss)
 
 def eval_epoch(model, data_iter, criterion):
     total_loss = 0.
@@ -228,14 +233,14 @@ def load_expert_data(num):
 if __name__ == "__main__":
     print ("Starting to load to data")
     train_states, train_actions, val_states, val_actions, exp_ave_stepsize, exp_std_stepsize, exp_ave_length, exp_ave_near_bound \
-        = load_expert_data(5000)
+        = load_expert_data(3000)
     print ("Done loading data")
     random.seed(SEED)
     np.random.seed(SEED)
 
     # Define Networks
-    generator = Generator(g_state_dim, g_hidden_dim, g_action_dim, opt.cuda, num_layers=1)
-    discriminator = Discriminator(d_num_class, d_state_dim, d_hidden_dim, num_layers=1)
+    generator = Generator(g_state_dim, g_hidden_dim, g_action_dim, opt.cuda, num_layers=1).double()
+    discriminator = Discriminator(d_num_class, d_state_dim, d_hidden_dim, num_layers=1).double()
     if opt.cuda:
         generator = generator.cuda()
         discriminator = discriminator.cuda()
@@ -254,10 +259,11 @@ if __name__ == "__main__":
         if epoch % VAL_FREQ == 0:
             validation_loss = train_epoch(generator, gen_val_data_iter, gen_criterion, gen_optimizer)
             print('Epoch [%d] Model Validation Loss: %f'% (epoch, validation_loss))
-
+            mod_samples, exp_samples = generate_samples(generator, 1, 1)
+            draw_samples(mod_samples, show_image=False, save_image=True, name="generated_" + str(epoch))
+            draw_samples(exp_samples, show_image=False, save_image=True, name="expert_" + str(epoch))
         loss = train_epoch(generator, gen_data_iter, gen_criterion, gen_optimizer)
         print('Epoch [%d] Model Loss: %f'% (epoch, loss))
-        # generate_samples(generator, BATCH_SIZE, GENERATED_NUM)
         update = None if graph_pretrain_generator is None else 'append'
         graph_pretrain_generator = vis.line(X = np.array([epoch]), Y = np.array([loss]), win = graph_pretrain_generator, update = update, opts=dict(title="pretrain policy training curve"))
 
@@ -268,7 +274,7 @@ if __name__ == "__main__":
     #     dis_criterion = dis_criterion.cuda()
     # print "Pretrain Discriminator ..."
     # for epoch in range(5):
-    #     generated_samples = generate_samples(generator, BATCH_SIZE, GENERATED_NUM)
+    #     generated_samples, exp_samples = generate_samples(generator, BATCH_SIZE, GENERATED_NUM)
     #     dis_data_iter = DisDataIter(train_states, generated_samples, BATCH_SIZE)
     #     for _ in range(3):
     #         loss = train_epoch(discriminator, dis_data_iter, dis_criterion, dis_optimizer, generator=False)
@@ -293,7 +299,7 @@ if __name__ == "__main__":
     #     for it in range(1):
     #         samp_ind = np.random.choice(train_states.shape[0], BATCH_SIZE)
     #         mod_samples = torch.from_numpy(train_states[samp_ind].copy())
-    #         starts = mod_samples[:, :1, :].clone().float()
+    #         starts = mod_samples[:, :1, :].clone()
 
     #         samples, targets = generator.sample(BATCH_SIZE, g_sequence_len, starts)
     #         # calculate the reward

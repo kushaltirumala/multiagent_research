@@ -50,7 +50,7 @@ class Generator(nn.Module):
         return action_mean, action_log_std, action_std, hidden
 
     def init_hidden(self, batch_size):
-        h = Variable(torch.zeros((self.num_layers, batch_size, self.hidden_dim)))
+        h = Variable(torch.zeros((self.num_layers, batch_size, self.hidden_dim)).double())
         if self.use_cuda:
             h = h.cuda()
         return h
@@ -81,38 +81,37 @@ class Generator(nn.Module):
     def env(self, x, a):
         """
         Args:
-            x: (batch_size, 1, state_dim) (x should be a FloatTensor)
-            actions: (batch_size, 1, action_dim)
+            x: (batch_size, 1, state_dim), Variable
+            actions: (batch_size, 1, action_dim), Variable
         """
-        x += a.data
+        x = x.data + a.data
         if self.use_cuda:
             x = x.cpu()
         x = x.numpy()   ## it seems we don't have clip in pytorch, so have to transfer it to numpy
         x = np.clip(x, 0, 1.0)
-        x = torch.from_numpy(x)
+        x = Variable(torch.from_numpy(x))
         if self.use_cuda:
             x = x.cuda()
 
-        return x
+        return x  # Variable
 
-    def sample(self, batch_size, seq_len, x=None): ## x is initial state or roll-out histories
+    def sample(self, batch_size, seq_len, x): ## x is initial state or roll-out histories
         h = self.init_hidden(batch_size)
         samples = []
         actions = []
-        if x is None: # means not doing rollout, just generating sample trajectories
-            x = Variable(torch.zeros(batch_size, 1, 22)).float()
-            for i in range(seq_len):
-                samples.append(x)
-                action, h = self.select_action(x, h)
-                x = action
-                actions.append(action)
-        else:
-            given_len = x.size(1)
-            for i in range(given_len, seq_len):
-                samples.append(x)
-                action, h = self.select_action(Variable(x), h)
-                actions.append(action)
-                x = self.env(x, action)
+        given_len = x.size(1)
+        lis = x.chunk(x.size(1), dim=1)
+        for i in range(given_len):
+            action, h = self.select_action(lis[i], h)
+            samples.append(lis[i])
+            actions.append(action)
+
+        x = self.env(x, action)
+        for i in range(given_len, seq_len):
+            samples.append(x)
+            action, h = self.select_action(x, h)
+            actions.append(action)
+            x = self.env(x, action)
 
         output = torch.cat(samples, dim=1)
         actions = torch.cat(actions, dim=1)
