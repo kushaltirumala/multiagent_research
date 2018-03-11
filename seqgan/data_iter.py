@@ -31,12 +31,14 @@ class GenDataIter(object):
     
     def reset(self):
         self.idx = 0
+        random.shuffle(self.indices)
 
     def next(self):
         if self.idx >= self.data_num:
             raise StopIteration
-        data = self.states[self.idx: self.idx+self.batch_size, :, :]
-        target = self.actions[self.idx: self.idx+self.batch_size, :, :]
+        index = self.indices[self.idx: self.idx+self.batch_size]
+        data = self.states[index, :, :]
+        target = self.actions[index, :, :]
         self.idx += self.batch_size
         return torch.from_numpy(data), torch.from_numpy(target)
 
