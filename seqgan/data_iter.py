@@ -50,11 +50,12 @@ class DisDataIter(object):
         self.data = np.concatenate((self.real_data, self.fake_data), axis=0).tolist()
         self.labels = [1 for _ in range(self.real_data.shape[0])] +\
                         [0 for _ in range(self.fake_data.shape[0])]
-        self.pairs = zip(self.data, self.labels)
+        self.pairs = list(zip(self.data, self.labels))
         self.data_num = len(self.pairs)
         self.indices = range(self.data_num)
         self.num_batches = int(math.ceil(float(self.data_num)/self.batch_size))
         self.idx = 0
+        self.reset()
 
     def __len__(self):
         return self.num_batches
@@ -77,7 +78,7 @@ class DisDataIter(object):
         data = [p[0] for p in pairs]
         label = [p[1] for p in pairs]
         data = torch.DoubleTensor(np.asarray(data))
-        label = torch.LongTensor(np.asarray(label))
+        label = torch.DoubleTensor(np.asarray(label))
         self.idx += self.batch_size
         return data, label
 

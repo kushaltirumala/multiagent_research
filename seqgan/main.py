@@ -34,11 +34,11 @@ print(opt)
 SEED = 88
 BATCH_SIZE = 32
 TOTAL_BATCH = 10
-GENERATED_NUM = 80
+GENERATED_NUM = 96
 NEGATIVE_FILE = 'training.data'
 EVAL_FILE = 'evaluation.data'
 VOCAB_SIZE = 22
-PRE_EPOCH_NUM = 30
+PRE_EPOCH_NUM = 10
 VAL_FREQ = 5
 
 '''
@@ -51,7 +51,7 @@ if opt.cuda is not None and opt.cuda >= 0:
 g_state_dim = 22
 g_hidden_dim = 256
 g_action_dim = 22
-g_sequence_len = 70
+g_sequence_len = 69
 
 # Discriminator Parameters
 d_num_class = 2
@@ -251,7 +251,7 @@ if __name__ == "__main__":
 
     # Pretrain Generator using MLE
     gen_criterion = nn.BCELoss(size_average=False)
-    gen_optimizer = optim.Adam(generator.parameters(), lr=0.01)
+    gen_optimizer = optim.Adam(generator.parameters())
     if opt.cuda:
         gen_criterion = gen_criterion.cuda()
     print('Pretrain with log probs ...')
@@ -267,22 +267,22 @@ if __name__ == "__main__":
         update = None if graph_pretrain_generator is None else 'append'
         graph_pretrain_generator = vis.line(X = np.array([epoch]), Y = np.array([loss]), win = graph_pretrain_generator, update = update, opts=dict(title="pretrain policy training curve"))
 
-    # # Pretrain Discriminator
-    # dis_criterion = nn.BCELoss(size_average=False)
-    # dis_optimizer = optim.Adam(discriminator.parameters())
-    # if opt.cuda:
-    #     dis_criterion = dis_criterion.cuda()
-    # print "Pretrain Discriminator ..."
-    # for epoch in range(5):
-    #     generated_samples, exp_samples = generate_samples(generator, BATCH_SIZE, GENERATED_NUM)
-    #     dis_data_iter = DisDataIter(train_states, generated_samples, BATCH_SIZE)
-    #     for _ in range(3):
-    #         loss = train_epoch(discriminator, dis_data_iter, dis_criterion, dis_optimizer, generator=False)
-    #         print('Epoch [%d], loss: %f' % (epoch, loss))
+    # Pretrain Discriminator
+    dis_criterion = nn.BCELoss(size_average=True)
+    dis_optimizer = optim.Adam(discriminator.parameters())
+    if opt.cuda:
+        dis_criterion = dis_criterion.cuda()
+    print ("Pretrain Discriminator ...")
+    for epoch in range(10):
+        generated_samples, exp_samples = generate_samples(generator, BATCH_SIZE, train_states.shape[0])
+        dis_data_iter = DisDataIter(train_states, generated_samples, BATCH_SIZE)
+        for _ in range(3):
+            loss = train_epoch(discriminator, dis_data_iter, dis_criterion, dis_optimizer, generator=False)
+            print('Epoch [%d], loss: %f' % (epoch, loss))
     # # Adversarial Training 
     # rollout = Rollout(generator, 0.8)
-    # print "#####################################################"
-    # print "Start Adversarial Training...\n"
+    # print ("#####################################################")
+    # print ("Start Adversarial Training...\n")
     # gen_gan_loss = GANLoss()
     # gen_gan_optm = optim.Adam(generator.parameters())
     # if opt.cuda:
@@ -310,7 +310,7 @@ if __name__ == "__main__":
     #         samples = Variable(samples)
     #         prob = generator.get_log_prob(samples, targets).contiguous().view((-1,))
     #         loss = gen_gan_loss(prob, rewards)
-    #         print "adversial training loss - generator[%d]: %f" % (total_batch, loss)
+    #         print ("adversial training loss - generator[%d]: %f" % (total_batch, loss))
     #         gen_gan_optm.zero_grad()
     #         loss.backward()
     #         gen_gan_optm.step()
@@ -323,7 +323,7 @@ if __name__ == "__main__":
     #         dis_data_iter = DisDataIter(train_states, samples, BATCH_SIZE)
     #         for _ in range(2):
     #             loss = train_epoch(discriminator, dis_data_iter, dis_criterion, dis_optimizer, generator=False)
-    #             print "adversial training loss - discriminator [%d]: %f" % (total_batch, loss)
+    #             print ("adversial training loss - discriminator [%d]: %f" % (total_batch, loss))
 
     # save_model(generator, discriminator, "saved_models/"+opt.file)
 
