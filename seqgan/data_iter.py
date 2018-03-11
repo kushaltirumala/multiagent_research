@@ -16,9 +16,9 @@ class GenDataIter(object):
         self.states = states
         self.actions = actions
         self.data_num = self.states.shape[0]
-        self.indices = range(self.data_num)
+        self.indices = list(range(self.data_num))
         self.num_batches = int(math.ceil(float(self.data_num)/self.batch_size))
-        self.idx = 0
+        self.reset()
 
     def __len__(self):
         return self.num_batches
@@ -56,7 +56,6 @@ class DisDataIter(object):
         self.data_num = len(self.pairs)
         self.indices = range(self.data_num)
         self.num_batches = int(math.ceil(float(self.data_num)/self.batch_size))
-        self.idx = 0
         self.reset()
 
     def __len__(self):
