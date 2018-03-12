@@ -30,13 +30,18 @@ parser.add_argument('--file', action='store', default=None)
 opt = parser.parse_args()
 print(opt)
 
+draw_pretrained_discriminator_images= False
+graph_pretrain_discriminator = None
+graph_pretrain_generator = None
+graph_adversarial_training = None
+graph_adversarial_training_discriminator = None
+
+
 # Basic Training Paramters
 SEED = 88
 BATCH_SIZE = 32
 TOTAL_BATCH = 10
 GENERATED_NUM = 96
-NEGATIVE_FILE = 'training.data'
-EVAL_FILE = 'evaluation.data'
 VOCAB_SIZE = 22
 PRE_EPOCH_NUM = 10
 VAL_FREQ = 5
@@ -59,7 +64,6 @@ d_state_dim = 22
 d_hidden_dim = 256
 
 vis = visdom.Visdom()
-graph_pretrain_generator = None
 
 
 def load_model(path):
@@ -86,7 +90,7 @@ def draw_samples(states, show_image=True, save_image=False, name=None):
         plot_sequences([draw_data], macro_goals=None, colormap=colormap, save_name="saved_images/{}_offense".format(name), show=False, burn_in=0)
         
 
-def generate_samples(model, batch_size, generated_num):
+def generate_samples(model, batch_size, generated_num, train_states):
     samples = []
     exp_samples = []
     for _ in range(int(generated_num / batch_size)):
@@ -237,95 +241,115 @@ if __name__ == "__main__":
     print ("Done loading data")
     random.seed(SEED)
     np.random.seed(SEED)
+    generator, discriminator = load_model("saved_models/pretrained_models")
 
-    # Define Networks
-    generator = Generator(g_state_dim, g_hidden_dim, g_action_dim, opt.cuda, num_layers=1).double()
-    discriminator = Discriminator(d_num_class, d_state_dim, d_hidden_dim, num_layers=1).double()
-    if opt.cuda:
-        generator = generator.cuda()
-        discriminator = discriminator.cuda()
-
-    # Load data from file
-    gen_data_iter = GenDataIter(train_states, train_actions, BATCH_SIZE)
-    gen_val_data_iter = GenDataIter(val_states, val_actions, BATCH_SIZE)
-
-    # Pretrain Generator using MLE
-    gen_criterion = nn.BCELoss(size_average=False)
-    gen_optimizer = optim.Adam(generator.parameters())
-    if opt.cuda:
-        gen_criterion = gen_criterion.cuda()
-    print('Pretrain with log probs ...')
-    for epoch in range(PRE_EPOCH_NUM):
-        if epoch % VAL_FREQ == 0:
-            validation_loss = train_epoch(generator, gen_val_data_iter, gen_criterion, gen_optimizer)
-            print('Epoch [%d] Model Validation Loss: %f'% (epoch, validation_loss))
-            mod_samples, exp_samples = generate_samples(generator, 1, 1)
-            draw_samples(mod_samples, show_image=False, save_image=True, name="generated_" + str(epoch))
-            draw_samples(exp_samples, show_image=False, save_image=True, name="expert_" + str(epoch))
-        loss = train_epoch(generator, gen_data_iter, gen_criterion, gen_optimizer)
-        print('Epoch [%d] Model Loss: %f'% (epoch, loss))
-        update = None if graph_pretrain_generator is None else 'append'
-        graph_pretrain_generator = vis.line(X = np.array([epoch]), Y = np.array([loss]), win = graph_pretrain_generator, update = update, opts=dict(title="pretrain policy training curve"))
-
-    # Pretrain Discriminator
-    dis_criterion = nn.BCELoss(size_average=True)
-    dis_optimizer = optim.Adam(discriminator.parameters())
-    if opt.cuda:
-        dis_criterion = dis_criterion.cuda()
-    print ("Pretrain Discriminator ...")
-    for epoch in range(10):
-        generated_samples, exp_samples = generate_samples(generator, BATCH_SIZE, train_states.shape[0])
-        dis_data_iter = DisDataIter(train_states, generated_samples, BATCH_SIZE)
-        for _ in range(3):
-            loss = train_epoch(discriminator, dis_data_iter, dis_criterion, dis_optimizer, generator=False)
-            print('Epoch [%d], loss: %f' % (epoch, loss))
-    # # Adversarial Training 
-    # rollout = Rollout(generator, 0.8)
-    # print ("#####################################################")
-    # print ("Start Adversarial Training...\n")
-    # gen_gan_loss = GANLoss()
-    # gen_gan_optm = optim.Adam(generator.parameters())
+    # # Define Networks
+    # generator = Generator(g_state_dim, g_hidden_dim, g_action_dim, opt.cuda, num_layers=1).double()
+    # discriminator = Discriminator(d_num_class, d_state_dim, d_hidden_dim, num_layers=1).double()
     # if opt.cuda:
-    #     gen_gan_loss = gen_gan_loss.cuda()
+    #     generator = generator.cuda()
+    #     discriminator = discriminator.cuda()
+
+    # # Load data from file
+    # gen_data_iter = GenDataIter(train_states, train_actions, BATCH_SIZE)
+    # gen_val_data_iter = GenDataIter(val_states, val_actions, BATCH_SIZE)
+
+    # # Pretrain Generator using MLE
     # gen_criterion = nn.BCELoss(size_average=False)
+    # gen_optimizer = optim.Adam(generator.parameters(), lr=0.01)
     # if opt.cuda:
     #     gen_criterion = gen_criterion.cuda()
-    # dis_criterion = nn.BCELoss(size_average=False)
+    # print('Pretrain with log probs ...')
+    # for epoch in range(PRE_EPOCH_NUM):
+    #     if epoch % VAL_FREQ == 0:
+    #         validation_loss = train_epoch(generator, gen_val_data_iter, gen_criterion, gen_optimizer)
+    #         print('Epoch [%d] Model Validation Loss: %f'% (epoch, validation_loss))
+    #         if draw_pretrained_discriminator_images: 
+    #             mod_samples, exp_samples = generate_samples(generator, 1, 1)
+    #             draw_samples(mod_samples, show_image=False, save_image=True, name="generated_" + str(epoch))
+    #             draw_samples(exp_samples, show_image=False, save_image=True, name="expert_" + str(epoch))
+    #     loss = train_epoch(generator, gen_data_iter, gen_criterion, gen_optimizer)
+    #     print('Epoch [%d] Model Loss: %f'% (epoch, loss))
+    #     update = None if graph_pretrain_generator is None else 'append'
+    #     graph_pretrain_generator = vis.line(X = np.array([epoch]), Y = np.array([loss]), win = graph_pretrain_generator, update = update, opts=dict(title="pretrain policy training curve"))
+
+    # # Pretrain Discriminator
+    # dis_criterion = nn.BCELoss(size_average=True)
     # dis_optimizer = optim.Adam(discriminator.parameters())
     # if opt.cuda:
     #     dis_criterion = dis_criterion.cuda()
-    # for total_batch in range(TOTAL_BATCH):
-    #     ## Train the generator for one step
-    #     for it in range(1):
-    #         samp_ind = np.random.choice(train_states.shape[0], BATCH_SIZE)
-    #         mod_samples = torch.from_numpy(train_states[samp_ind].copy())
-    #         starts = mod_samples[:, :1, :].clone()
+    # print ("Pretrain Discriminator ...")
+    # total_iter = 0
+    # for epoch in range(PRE_EPOCH_NUM):
+    #     generated_samples, exp_samples = generate_samples(generator, BATCH_SIZE, train_states.shape[0])
+    #     dis_data_iter = DisDataIter(train_states, generated_samples, BATCH_SIZE)
+    #     if total_iter % VAL_FREQ == 0:
+    #         dis_val_data_iter = DisDataIter(val_states, generated_samples, BATCH_SIZE)
+    #     for _ in range(3):
+    #         if total_iter % VAL_FREQ == 0:
+    #             loss = train_epoch(discriminator, dis_val_data_iter, dis_criterion, dis_optimizer, generator=False)
+    #             print('Epoch [%d], Iter[%d] Validation loss: %f' % (epoch, _, loss))
+    #         loss = train_epoch(discriminator, dis_data_iter, dis_criterion, dis_optimizer, generator=False)
+    #         print('Epoch [%d], Iter[%d] loss: %f' % (epoch, _, loss))
+    #         update = None if graph_pretrain_discriminator is None else 'append'
+    #         graph_pretrain_discriminator = vis.line(X = np.array([total_iter]), Y = np.array([loss]), win = graph_pretrain_discriminator, update = update, opts=dict(title="pretrain discriminator loss function"))
+    #         total_iter += 1
+    # Adversarial Training 
+    rollout = Rollout(generator, 0.8)
+    print ("#####################################################")
+    print ("Start Adversarial Training...\n")
+    gen_gan_loss = GANLoss()
+    gen_gan_optm = optim.Adam(generator.parameters(), lr=0.01)
+    if opt.cuda:
+        gen_gan_loss = gen_gan_loss.cuda()
+    gen_criterion = nn.BCELoss(size_average=False)
+    if opt.cuda:
+        gen_criterion = gen_criterion.cuda()
+    dis_criterion = nn.BCELoss(size_average=False)
+    dis_optimizer = optim.Adam(discriminator.parameters())
+    if opt.cuda:
+        dis_criterion = dis_criterion.cuda()
+    total_iter = 0
+    for total_batch in range(TOTAL_BATCH):
+        ## Train the generator for one step
+        for it in range(1):
+            samp_ind = np.random.choice(train_states.shape[0], BATCH_SIZE)
+            mod_samples = torch.from_numpy(train_states[samp_ind].copy())
+            starts = mod_samples[:, :1, :].clone()
 
-    #         samples, targets = generator.sample(BATCH_SIZE, g_sequence_len, starts)
-    #         # calculate the reward
-    #         rewards = rollout.get_reward(samples, 16, discriminator)
-    #         rewards = Variable(torch.Tensor(rewards)).contiguous().view((-1,))
-    #         if opt.cuda:
-    #             rewards = torch.exp(rewards.cuda()).contiguous().view((-1,))
-    #         samples = Variable(samples)
-    #         prob = generator.get_log_prob(samples, targets).contiguous().view((-1,))
-    #         loss = gen_gan_loss(prob, rewards)
-    #         print ("adversial training loss - generator[%d]: %f" % (total_batch, loss))
-    #         gen_gan_optm.zero_grad()
-    #         loss.backward()
-    #         gen_gan_optm.step()
+            samples, targets = generator.sample(BATCH_SIZE, g_sequence_len, Variable(starts))
+            # calculate the reward
+            rewards = rollout.get_reward(samples, 16, discriminator)
+            rewards = Variable(torch.Tensor(rewards)).contiguous().view((-1,))
+            if opt.cuda:
+                rewards = torch.exp(rewards.cuda()).contiguous().view((-1,))
+
+            prob = generator.get_log_prob(samples, targets).contiguous().view((-1,)).float()
+            loss = gen_gan_loss(prob, rewards)
+
+            update = None if graph_adversarial_training is None else 'append'
+            graph_adversarial_training = vis.line(X = np.array([total_batch]), Y = np.array([-loss.data[0]]), win = graph_adversarial_training, update = update, opts=dict(title="adversarial training loss"))
+
+            print ("adversial training loss - generator[%d]: %f" % (total_batch, loss))
+            gen_gan_optm.zero_grad()
+            loss.backward()
+            gen_gan_optm.step()
 
 
-    #     rollout.update_params()
+        rollout.update_params()
         
-    #     for _ in range(4):
-    #         samples = generate_samples(generator, BATCH_SIZE, GENERATED_NUM)
-    #         dis_data_iter = DisDataIter(train_states, samples, BATCH_SIZE)
-    #         for _ in range(2):
-    #             loss = train_epoch(discriminator, dis_data_iter, dis_criterion, dis_optimizer, generator=False)
-    #             print ("adversial training loss - discriminator [%d]: %f" % (total_batch, loss))
-
-    # save_model(generator, discriminator, "saved_models/"+opt.file)
+        for _ in range(4):
+            generated_samples, exp_samples = generate_samples(generator, BATCH_SIZE, train_states.shape[0], train_states)
+            dis_data_iter = DisDataIter(train_states, generated_samples, BATCH_SIZE)
+            for _ in range(2):
+                loss = train_epoch(discriminator, dis_data_iter, dis_criterion, dis_optimizer, generator=False)
+                total_iter += 1
+                print ("adversial training loss - discriminator [%d]: %f" % (total_batch, loss))
+                update = None if graph_adversarial_training_discriminator is None else 'append'
+                graph_adversarial_training_discriminator = vis.line(X = np.array([total_iter]), Y = np.array([loss]), win = graph_adversarial_training_discriminator, update = update, opts=dict(title="adversarial discriminator training loss"))
+                
+    if opt.file:
+        save_model(generator, discriminator, "saved_models/"+str(opt.file))
 
 
 
