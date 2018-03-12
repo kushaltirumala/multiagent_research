@@ -138,22 +138,28 @@ def train_epoch(model, data_iter, criterion, optimizer, generator=True):
     data_iter.reset()
     return np.mean(total_loss)
 
-def eval_epoch(model, data_iter, criterion):
-    total_loss = 0.
-    total_words = 0.
+def eval_epoch(model, data_iter, criterion, generator=True):
+    total_loss = []
     for (data, target) in data_iter:#tqdm(
-        #data_iter, mininterval=2, desc=' - Training', leave=False):
-        data = Variable(data, volatile=True)
-        target = Variable(target, volatile=True)
+        #data_iter, mininterval=2,  desc=' - Training', leave=False):
+        data = Variable(data)
+        target = Variable(target)
         if opt.cuda:
             data, target = data.cuda(), target.cuda()
-        target = target.contiguous().view(-1)
-        pred = model.forward(data)
-        loss = criterion(pred, target)
-        total_loss += loss.data[0]
-        total_words += data.size(0) * data.size(1)
+ 
+        if generator:
+            prob_logs = model.get_log_prob(data, target)
+            loss = -prob_logs.mean()
+            total_loss.append(loss.data[0])
+        else:
+            # note here target is label
+            prob = discriminator(data)
+            prob = prob[:, 1]
+            loss = criterion(prob, target)
+            total_loss.append(loss.data[0])
+            
     data_iter.reset()
-    return math.exp(total_loss / total_words)
+    return np.mean(total_loss)
 
 class GANLoss(nn.Module):
     def __init__(self):
@@ -266,10 +272,10 @@ if __name__ == "__main__":
     print('Pretrain with log probs ...')
     for epoch in range(PRE_EPOCH_NUM):
         if epoch % VAL_FREQ == 0:
-            validation_loss = train_epoch(generator, gen_val_data_iter, gen_criterion, gen_optimizer)
+            validation_loss = eval_epoch(generator, gen_val_data_iter, gen_criterion)
             print('Epoch [%d] Model Validation Loss: %f'% (epoch, validation_loss))
             if draw_pretrained_discriminator_images: 
-                mod_samples, exp_samples = generate_samples(generator, 1, 1)
+                mod_samples, exp_samples = generate_samples(generator, 1, 1, train_states)
                 draw_samples(mod_samples, show_image=False, save_image=True, name="generated_" + str(epoch))
                 draw_samples(exp_samples, show_image=False, save_image=True, name="expert_" + str(epoch))
         loss = train_epoch(generator, gen_data_iter, gen_criterion, gen_optimizer)
@@ -285,13 +291,13 @@ if __name__ == "__main__":
     print ("Pretrain Discriminator ...")
     total_iter = 0
     for epoch in range(PRE_EPOCH_NUM):
-        generated_samples, exp_samples = generate_samples(generator, BATCH_SIZE, train_states.shape[0])
+        generated_samples, exp_samples = generate_samples(generator, BATCH_SIZE, train_states.shape[0], train_states)
         dis_data_iter = DisDataIter(train_states, generated_samples, BATCH_SIZE)
         if total_iter % VAL_FREQ == 0:
             dis_val_data_iter = DisDataIter(val_states, generated_samples, BATCH_SIZE)
         for _ in range(3):
             if total_iter % VAL_FREQ == 0:
-                loss = train_epoch(discriminator, dis_val_data_iter, dis_criterion, dis_optimizer, generator=False)
+                loss = eval_epoch(discriminator, dis_val_data_iter, dis_criterion, generator=False)
                 print('Epoch [%d], Iter[%d] Validation loss: %f' % (epoch, _, loss))
             loss = train_epoch(discriminator, dis_data_iter, dis_criterion, dis_optimizer, generator=False)
             print('Epoch [%d], Iter[%d] loss: %f' % (epoch, _, loss))
@@ -323,7 +329,7 @@ if __name__ == "__main__":
 
             samples, targets = generator.sample(BATCH_SIZE, g_sequence_len, Variable(starts))
             # calculate the reward
-            rewards = rollout.get_reward(samples, 16, discriminator)
+            rewards = rollout.get_reward(samples, 2, discriminator)
             rewards = Variable(torch.Tensor(rewards)).contiguous().view((-1,))
             if opt.cuda:
                 rewards = torch.exp(rewards.cuda()).contiguous().view((-1,))
@@ -342,7 +348,7 @@ if __name__ == "__main__":
 
         rollout.update_params()
         
-        for _ in range(4):
+        for _ in range(1):
             generated_samples, exp_samples = generate_samples(generator, BATCH_SIZE, train_states.shape[0], train_states)
             dis_data_iter = DisDataIter(train_states, generated_samples, BATCH_SIZE)
             for _ in range(2):
