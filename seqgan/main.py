@@ -35,6 +35,8 @@ graph_pretrain_discriminator = None
 graph_pretrain_generator = None
 graph_adversarial_training = None
 graph_adversarial_training_discriminator = None
+graph_pretrain_generator_validation = None
+graph_pretrain_discriminator_validation = None
 
 
 # Basic Training Paramters
@@ -276,6 +278,8 @@ if __name__ == "__main__":
         if epoch % VAL_FREQ == 0:
             validation_loss = eval_epoch(generator, gen_val_data_iter, gen_criterion)
             print('Epoch [%d] Model Validation Loss: %f'% (epoch, validation_loss))
+            update = None if graph_pretrain_generator_validation is None else 'append'
+            graph_pretrain_generator_validation = vis.line(X = np.array([epoch]), Y = np.array([validation_loss]), win = graph_pretrain_generator_validation, update = update, opts=dict(title="pretrain generator validation curve"))
             if draw_pretrained_discriminator_images: 
                 mod_samples, exp_samples = generate_samples(generator, 1, 1, train_states)
                 draw_samples(mod_samples, show_image=False, save_image=True, name="generated_" + str(epoch))
@@ -283,7 +287,7 @@ if __name__ == "__main__":
         loss = train_epoch(generator, gen_data_iter, gen_criterion, gen_optimizer)
         print('Epoch [%d] Model Loss: %f'% (epoch, loss))
         update = None if graph_pretrain_generator is None else 'append'
-        graph_pretrain_generator = vis.line(X = np.array([epoch]), Y = np.array([loss]), win = graph_pretrain_generator, update = update, opts=dict(title="pretrain policy training curve"))
+        graph_pretrain_generator = vis.line(X = np.array([epoch]), Y = np.array([loss]), win = graph_pretrain_generator, update = update, opts=dict(title="pretrain generator training curve"))
 
     # Pretrain Discriminator
     dis_criterion = nn.BCELoss(size_average=True)
@@ -299,8 +303,10 @@ if __name__ == "__main__":
             dis_val_data_iter = DisDataIter(val_states, generated_samples, BATCH_SIZE)
         for _ in range(3):
             if total_iter % VAL_FREQ == 0:
-                loss = eval_epoch(discriminator, dis_val_data_iter, dis_criterion, generator=False)
-                print('Epoch [%d], Iter[%d] Validation loss: %f' % (epoch, _, loss))
+                validation_loss = eval_epoch(discriminator, dis_val_data_iter, dis_criterion, generator=False)
+                print('Epoch [%d], Iter[%d] Validation loss: %f' % (epoch, _, validation_loss))
+                update = None if graph_pretrain_discriminator_validation is None else 'append'
+                graph_pretrain_discriminator_validation = vis.line(X = np.array([epoch]), Y = np.array([validation_loss]), win = graph_pretrain_discriminator_validation, update = update, opts=dict(title="pretrain discriminator validatoin curve"))
             loss = train_epoch(discriminator, dis_data_iter, dis_criterion, dis_optimizer, generator=False)
             print('Epoch [%d], Iter[%d] loss: %f' % (epoch, _, loss))
             update = None if graph_pretrain_discriminator is None else 'append'
