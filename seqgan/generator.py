@@ -100,19 +100,26 @@ class Generator(nn.Module):
         samples = []
         actions = []
         given_len = x.size(1)
-        lis = x.chunk(x.size(1), dim=1)
-        for i in range(given_len):
-            action, h = self.select_action(lis[i], h)
-            samples.append(lis[i])
-            actions.append(action)
-
-        x = self.env(x, action)
-        for i in range(given_len, seq_len):
-            samples.append(x)
-            action, h = self.select_action(x, h)
-            actions.append(action)
-            x = self.env(x, action)
-
-        output = torch.cat(samples, dim=1)
-        actions = torch.cat(actions, dim=1)
-        return output, actions
+        if given_len == 1:
+            for i in range(seq_len):
+                samples.append(x)
+                action, h = self.select_action(x, h)
+                actions.append(action)
+                x = self.env(x, action)
+    
+            output = torch.cat(samples, dim=1)
+            actions = torch.cat(actions, dim=1)
+            return output, actions
+        else:
+            lis = x.chunk(x.size(1), dim=1)
+            for i in range(given_len):
+                samples.append(lis[i])
+            action_mean, action_log_std, action_std, hidden = self.forward(x, h)
+            action = torch.normal(action_mean[:, given_len-1:, :], action_std[:, given_len-1:, :])
+            x = self.env(lis[-1], action)
+            for i in range(given_len, seq_len):
+                samples.append(x)
+                action, h = self.select_action(x, h)
+                x = self.env(x, action)
+            output = torch.cat(samples, dim=1)
+            return output, []

@@ -34,7 +34,8 @@ class Rollout(object):
         for i in range(num):
             for l in range(1, seq_len):
                 data = x[:, 0:l]
-                samples, _ = self.own_model.sample(batch_size, seq_len, data)
+                #samples, _ = self.own_model.sample(batch_size, seq_len, data)
+                samples, _ = self.ori_model.sample(batch_size, seq_len, data)
                 pred = discriminator(samples)
                 pred = pred.cpu().data[:,1].numpy()
                 if i == 0:
