@@ -37,6 +37,7 @@ graph_adversarial_training = None
 graph_adversarial_training_discriminator = None
 graph_pretrain_generator_validation = None
 graph_pretrain_discriminator_validation = None
+experiment_num = 3
 
 
 # Basic Training Paramters
@@ -313,7 +314,7 @@ if __name__ == "__main__":
             graph_pretrain_discriminator = vis.line(X = np.array([total_iter]), Y = np.array([loss]), win = graph_pretrain_discriminator, update = update, opts=dict(title="pretrain discriminator loss function"))
             total_iter += 1
             
-    save_model(generator, discriminator, "saved_models/"+str("pretrained_model_1_layer.p"))
+    save_model(generator, discriminator, "saved_models/"+str("pretrained_models_"+str(experiment_num)))
     
     # ------------------------------------------------------------------------
     # AFTER PRETRAIN, OUTPUT SOME VALIDATION RESULTS AND IMAGES FOR REFERENCE
@@ -325,8 +326,8 @@ if __name__ == "__main__":
     gen_val_data_iter = GenDataIter(val_states, val_actions, BATCH_SIZE)
     gen_loss = eval_epoch(generator, gen_val_data_iter, gen_criterion)
     mod_samples, exp_samples = generate_samples(generator, 1, 1, train_states)
-    draw_samples(mod_samples, show_image=False, save_image=True, name="pretrained_generated")
-    draw_samples(exp_samples, show_image=False, save_image=True, name="pretrained_expert")
+    draw_samples(mod_samples, show_image=False, save_image=True, name="pretrained_generated_experiment"+str(experiment_num))
+    draw_samples(exp_samples, show_image=False, save_image=True, name="pretrained_expert_experiment"+str(experiment_num))
     
     dis_criterion = nn.BCELoss(size_average=True)
     if opt.cuda:
@@ -335,11 +336,11 @@ if __name__ == "__main__":
     dis_val_data_iter = DisDataIter(val_states, generated_samples, BATCH_SIZE)
     dis_loss = eval_epoch(discriminator, dis_val_data_iter, dis_criterion, generator=False)
     
-    print("after pretraining, generator validation loss is {}, discriminator validation loss is {}".format(gen_loss, dis_loss))
+    print("post pretraining stats: generator validation loss is {}, discriminator validation loss is {}".format(gen_loss, dis_loss))
     
     
     # Adversarial Training 
-    rollout = Rollout(generator, 0.0)
+    rollout = Rollout(generator, 0.8)
     print ("#####################################################")
     print ("Start Adversarial Training...\n")
     gen_gan_loss = GANLoss()
@@ -398,11 +399,11 @@ if __name__ == "__main__":
                 
         if total_batch % VAL_FREQ == 0:
             mod_samples, exp_samples = generate_samples(generator, 1, 1, train_states)
-            draw_samples(mod_samples, show_image=False, save_image=True, name="GAN_generated_" + str(total_batch))
-            draw_samples(exp_samples, show_image=False, save_image=True, name="GAN_expert_" + str(total_batch))
+            draw_samples(mod_samples, show_image=False, save_image=True, name="GAN_generated_" + str(total_batch)+"_experiment"+str(experiment_num))
+            draw_samples(exp_samples, show_image=False, save_image=True, name="GAN_expert_" + str(total_batch)+"_experiment"+str(experiment_num))
         
-    if opt.file is not None:
-        save_model(generator, discriminator, "saved_models/"+str(opt.file))
+    # if opt.file is not None:
+    save_model(generator, discriminator, "saved_models/adversarial_trained_models"+str(experiment_num))
 
 
 
