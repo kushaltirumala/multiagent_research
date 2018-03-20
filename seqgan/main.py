@@ -39,9 +39,9 @@ graph_adversarial_training = None
 graph_adversarial_training_discriminator = None
 graph_pretrain_generator_validation = None
 graph_pretrain_discriminator_validation = None
-experiment_num = 6
+experiment_num = 7
 
-same_start_set = False
+same_start_set = True
 
 
 # Basic Training Paramters
@@ -310,7 +310,7 @@ if __name__ == "__main__":
         dis_criterion = dis_criterion.cuda()
     print ("Pretrain Discriminator ...")
     total_iter = 0
-    for epoch in range(1):
+    for epoch in range(4):
         generated_samples, exp_samples = generate_samples(generator, BATCH_SIZE, train_states.shape[0], train_states)
         dis_data_iter = DisDataIter(train_states, generated_samples, BATCH_SIZE)
         if total_iter % VAL_FREQ == 0:
@@ -421,9 +421,9 @@ if __name__ == "__main__":
         adversarial_generator, adversarial_discriminator = load_model("adversarial_trained_models" + str(experiment_num))
         pretrain_trajectories, exp_trajectories, starts = generate_samples(pretrained_generator, 1, 1, train_states, return_start_states=True)
         adversarial_trajectories, exp_trajectories = generate_samples(pretrained_generator, 1, 1, train_states, definite_start_state=starts)
-        draw_samples(exp_trajectories, show_image=False, save_image=True, name="saved_images/experiment_"+str(experiment_num)+"/"+"SAME_START_EXPERT")
-        draw_samples(pretrain_trajectories, show_image=False, save_image=True, name="saved_images/experiment_"+str(experiment_num)+"/"+"SAME_START_PRETRAIN")
-        draw_samples(adversarial_trajectories, show_image=False, save_image=True, name="saved_images/experiment_"+str(experiment_num)+"/"+"SAME_START_ADVERSARIAL")
+        draw_samples(exp_trajectories, show_image=False, save_image=True, name="SAME_START_EXPERT")
+        draw_samples(pretrain_trajectories, show_image=False, save_image=True, name="SAME_START_PRETRAIN")
+        draw_samples(adversarial_trajectories, show_image=False, save_image=True, name="SAME_START_ADVERSARIAL")
 
 
 
