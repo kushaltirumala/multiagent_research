@@ -39,7 +39,7 @@ graph_adversarial_training = None
 graph_adversarial_training_discriminator = None
 graph_pretrain_generator_validation = None
 graph_pretrain_discriminator_validation = None
-experiment_num = 5
+experiment_num = 6
 
 
 # Basic Training Paramters
