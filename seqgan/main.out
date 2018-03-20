@@ -1,0 +1,87 @@
+/home/ubuntu/anaconda3/lib/python3.6/site-packages/matplotlib/__init__.py:962: UserWarning: Duplicate key in file "/home/ubuntu/.config/matplotlib/matplotlibrc", line #2
+  (fname, cnt))
+/home/ubuntu/anaconda3/lib/python3.6/site-packages/matplotlib/__init__.py:962: UserWarning: Duplicate key in file "/home/ubuntu/.config/matplotlib/matplotlibrc", line #3
+  (fname, cnt))
+/home/ubuntu/anaconda3/lib/python3.6/site-packages/skimage/transform/_warps.py:84: UserWarning: The default mode, 'constant', will be changed to 'reflect' in skimage 0.15.
+  warn("The default mode, 'constant', will be changed to 'reflect' in "
+Namespace(cuda=None, file=None)
+Starting to load to data
+(16475, 69, 22)
+[0.01795191 0.02112961 0.01065044 0.0094444  0.01038076 0.00911547
+ 0.01039798 0.0090908  0.01043899 0.00915326 0.01041116 0.00907294
+ 0.00879942 0.00864597 0.00876993 0.00864031 0.00876052 0.00862047
+ 0.00877239 0.00866959 0.00878506 0.00870779] [0.02866    0.03502423 0.01454664 0.01410364 0.0141861  0.01384595
+ 0.0142254  0.01381259 0.01424781 0.01389297 0.01422837 0.01377538
+ 0.01212761 0.01240132 0.01205922 0.0123783  0.01209089 0.01235392
+ 0.01211936 0.01242679 0.01211155 0.01246402] [2.14874208 1.11722061 1.08772653 1.08705337 1.09256275 1.08639749
+ 0.96233201 0.96008966 0.95883081 0.96228865 0.96504313] [0.00145411 0.07182688 0.00604693 0.0827754  0.00694245 0.10280574
+ 0.00698819 0.10224539 0.0064164  0.10053705 0.00715005 0.09794286
+ 0.00220624 0.02058015 0.00239889 0.02231488 0.00209452 0.02409184
+ 0.00225814 0.02149238 0.00231356 0.02135515]
+train_data.shape: (16475, 69, 22) val_data.shape: (4119, 69, 22)
+Done loading data
+Pretrain with log probs ...
+Epoch [0] Model Validation Loss: 20.219639
+Epoch [0] Model Loss: -33.747140
+Epoch [1] Model Loss: -79.420935
+Epoch [2] Model Loss: -84.290083
+Epoch [3] Model Validation Loss: -85.086687
+Epoch [3] Model Loss: -85.259533
+Epoch [4] Model Loss: -85.604183
+Epoch [5] Model Loss: -85.777220
+Epoch [6] Model Validation Loss: -84.981481
+Epoch [6] Model Loss: -85.826111
+Epoch [7] Model Loss: -85.882228
+Epoch [8] Model Loss: -85.938169
+Epoch [9] Model Validation Loss: -86.000695
+Epoch [9] Model Loss: -85.984589
+Pretrain Discriminator ...
+Epoch [0], Iter[0] Validation loss: 0.633265
+Epoch [0], Iter[0] loss: 0.114876
+Epoch [0], Iter[1] loss: 0.027789
+Saving Model
+Drawing
+Drawing
+post pretraining stats: generator validation loss is -85.69651462687234, discriminator validation loss is 0.021560965041643537
+#####################################################
+Start Adversarial Training...
+
+ave_rewards = 0.01390650856068497
+adversial training loss - generator[0]: -1.193935
+adversial training loss - discriminator [0]: 0.007861
+Drawing
+Drawing
+ave_rewards = 0.0014507932402035614
+adversial training loss - generator[1]: -0.125891
+adversial training loss - discriminator [1]: 0.001222
+ave_rewards = 0.00021638073718237768
+adversial training loss - generator[2]: -0.018727
+adversial training loss - discriminator [2]: 0.001397
+ave_rewards = 0.000283591579683275
+adversial training loss - generator[3]: -0.024142
+adversial training loss - discriminator [3]: 0.000950
+Drawing
+Drawing
+ave_rewards = 0.00011892139503821542
+adversial training loss - generator[4]: -0.009980
+adversial training loss - discriminator [4]: 0.001141
+ave_rewards = 0.00014284159402652352
+adversial training loss - generator[5]: -0.012356
+adversial training loss - discriminator [5]: 0.001114
+ave_rewards = 0.0002524020444908067
+adversial training loss - generator[6]: -0.021799
+adversial training loss - discriminator [6]: 0.001335
+Drawing
+Drawing
+ave_rewards = 0.0001917118941277858
+adversial training loss - generator[7]: -0.016338
+adversial training loss - discriminator [7]: 0.000942
+ave_rewards = 0.0002366113774188084
+adversial training loss - generator[8]: -0.020187
+adversial training loss - discriminator [8]: 0.000829
+ave_rewards = 0.00011156801534251422
+adversial training loss - generator[9]: -0.009618
+adversial training loss - discriminator [9]: 0.000118
+Drawing
+Drawing
+Saving Model
