@@ -30,20 +30,22 @@ parser.add_argument('--file', action='store', default=None)
 opt = parser.parse_args()
 print(opt)
 
-draw_pretrained_discriminator_images= True
+draw_pretrained_discriminator_images= False
+
+# -----------------------------------------
 graph_pretrain_discriminator = None
 graph_pretrain_generator = None
 graph_adversarial_training = None
 graph_adversarial_training_discriminator = None
 graph_pretrain_generator_validation = None
 graph_pretrain_discriminator_validation = None
-experiment_num = 3
+experiment_num = 4
 
 
 # Basic Training Paramters
 SEED = 88
 BATCH_SIZE = 32
-TOTAL_BATCH = 20
+TOTAL_BATCH = 10
 GENERATED_NUM = 96
 VOCAB_SIZE = 22
 PRE_EPOCH_NUM = 5
@@ -67,6 +69,8 @@ d_state_dim = 22
 d_hidden_dim = 256
 
 vis = visdom.Visdom()
+if not os.path.exists("saved_images/experiment_"+str(experiment_num)):
+    os.makedirs("saved_images/experiment_"+str(experiment_num))
 
 
 def load_model(path):
@@ -92,7 +96,7 @@ def draw_samples(states, show_image=True, save_image=False, name=None):
     if show_image:
         plot_sequences([draw_data], macro_goals=None, colormap=colormap, show=show_image, burn_in=0)
     else:
-        plot_sequences([draw_data], macro_goals=None, colormap=colormap, save_name="saved_images/{}_offense".format(name), show=False, burn_in=0)
+        plot_sequences([draw_data], macro_goals=None, colormap=colormap, save_name="saved_images/experiment_"+str(experiment_num)+"/"+name+"_offense", show=False, burn_in=0)
         
 
 def generate_samples(model, batch_size, generated_num, train_states):
@@ -302,16 +306,16 @@ if __name__ == "__main__":
         dis_data_iter = DisDataIter(train_states, generated_samples, BATCH_SIZE)
         if total_iter % VAL_FREQ == 0:
             dis_val_data_iter = DisDataIter(val_states, generated_samples, BATCH_SIZE)
-        for _ in range(3):
+        for _ in range(2):
             if total_iter % VAL_FREQ == 0:
                 validation_loss = eval_epoch(discriminator, dis_val_data_iter, dis_criterion, generator=False)
                 print('Epoch [%d], Iter[%d] Validation loss: %f' % (epoch, _, validation_loss))
                 update = None if graph_pretrain_discriminator_validation is None else 'append'
-                graph_pretrain_discriminator_validation = vis.line(X = np.array([epoch]), Y = np.array([validation_loss]), win = graph_pretrain_discriminator_validation, update = update, opts=dict(title="pretrain discriminator validatoin curve"))
+                graph_pretrain_discriminator_validation = vis.line(X = np.array([epoch]), Y = np.array([validation_loss]), win = graph_pretrain_discriminator_validation, update = update, opts=dict(title="pretrain discriminator validation curve"))
             loss = train_epoch(discriminator, dis_data_iter, dis_criterion, dis_optimizer, generator=False)
             print('Epoch [%d], Iter[%d] loss: %f' % (epoch, _, loss))
             update = None if graph_pretrain_discriminator is None else 'append'
-            graph_pretrain_discriminator = vis.line(X = np.array([total_iter]), Y = np.array([loss]), win = graph_pretrain_discriminator, update = update, opts=dict(title="pretrain discriminator loss function"))
+            graph_pretrain_discriminator = vis.line(X = np.array([total_iter]), Y = np.array([loss]), win = graph_pretrain_discriminator, update = update, opts=dict(title="pretrain discriminator training curve"))
             total_iter += 1
             
     save_model(generator, discriminator, "saved_models/"+str("pretrained_models_"+str(experiment_num)))
@@ -326,8 +330,8 @@ if __name__ == "__main__":
     gen_val_data_iter = GenDataIter(val_states, val_actions, BATCH_SIZE)
     gen_loss = eval_epoch(generator, gen_val_data_iter, gen_criterion)
     mod_samples, exp_samples = generate_samples(generator, 1, 1, train_states)
-    draw_samples(mod_samples, show_image=False, save_image=True, name="pretrained_generated_experiment"+str(experiment_num))
-    draw_samples(exp_samples, show_image=False, save_image=True, name="pretrained_expert_experiment"+str(experiment_num))
+    draw_samples(mod_samples, show_image=False, save_image=True, name="pretrained_generated")
+    draw_samples(exp_samples, show_image=False, save_image=True, name="pretrained_expert")
     
     dis_criterion = nn.BCELoss(size_average=True)
     if opt.cuda:
@@ -366,10 +370,8 @@ if __name__ == "__main__":
 
             samples, targets = generator.sample(BATCH_SIZE, g_sequence_len, starts)
             # calculate the reward
-            print("start rollout")
             rewards = rollout.get_reward(samples, 16, discriminator)
             print("ave_rewards = {}".format(np.mean(rewards)))
-            print("rollout finished")
             rewards = Variable(torch.Tensor(rewards)).contiguous().view((-1,))
             if opt.cuda:
                 rewards = torch.exp(rewards.cuda()).contiguous().view((-1,))
@@ -399,8 +401,8 @@ if __name__ == "__main__":
                 
         if total_batch % VAL_FREQ == 0:
             mod_samples, exp_samples = generate_samples(generator, 1, 1, train_states)
-            draw_samples(mod_samples, show_image=False, save_image=True, name="GAN_generated_" + str(total_batch)+"_experiment"+str(experiment_num))
-            draw_samples(exp_samples, show_image=False, save_image=True, name="GAN_expert_" + str(total_batch)+"_experiment"+str(experiment_num))
+            draw_samples(mod_samples, show_image=False, save_image=True, name="GAN_generated_" + str(total_batch))
+            draw_samples(exp_samples, show_image=False, save_image=True, name="GAN_expert_" + str(total_batch))
         
     # if opt.file is not None:
     save_model(generator, discriminator, "saved_models/adversarial_trained_models"+str(experiment_num))
