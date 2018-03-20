@@ -124,7 +124,7 @@ def generate_samples(model, batch_size, generated_num, train_states, definite_st
         samples.append(sample)
     if not return_start_states:
         return np.vstack(samples), np.vstack(exp_samples)
-    else 
+    else:
         return np.vstack(samples), np.vstack(exp_samples), starts
 
 def train_epoch(model, data_iter, criterion, optimizer, generator=True):
