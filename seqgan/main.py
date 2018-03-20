@@ -41,11 +41,13 @@ graph_pretrain_generator_validation = None
 graph_pretrain_discriminator_validation = None
 experiment_num = 6
 
+same_start_set = False
+
 
 # Basic Training Paramters
 SEED = 88
 BATCH_SIZE = 32
-TOTAL_BATCH = 5
+TOTAL_BATCH = 15
 GENERATED_NUM = 96
 VOCAB_SIZE = 22
 PRE_EPOCH_NUM = 10
@@ -99,24 +101,31 @@ def draw_samples(states, show_image=True, save_image=False, name=None):
         plot_sequences([draw_data], macro_goals=None, colormap=colormap, save_name="saved_images/experiment_"+str(experiment_num)+"/"+name+"_offense", show=False, burn_in=0)
         
 
-def generate_samples(model, batch_size, generated_num, train_states):
+def generate_samples(model, batch_size, generated_num, train_states, definite_start_state=None, return_start_states=False):
     samples = []
     exp_samples = []
     for _ in range(int(generated_num / batch_size)):
         # sample some sequences from train_states
         # take the first state as our starts
         # take the entire sequences as the ground truth
-        idxs = np.random.choice(train_states.shape[0], batch_size)
-        exp_sample = train_states[idxs].copy()
-        exp_samples.append(exp_sample)
-        starts = Variable(torch.from_numpy(exp_sample[:, 0:1, :].copy()))
-        if opt.cuda:
-            starts = starts.cuda()
+        if definite_start_state is None:
+            idxs = np.random.choice(train_states.shape[0], batch_size)
+            exp_sample = train_states[idxs].copy()
+            exp_samples.append(exp_sample)
+            starts = Variable(torch.from_numpy(exp_sample[:, 0:1, :].copy()))
+            if opt.cuda:
+                starts = starts.cuda()
+        else:
+            starts = definite_start_state
         
         # sampling
+
         sample = model.sample(batch_size, g_sequence_len, starts)[0].cpu().data.numpy()
         samples.append(sample)
-    return np.vstack(samples), np.vstack(exp_samples)
+    if not return_start_states:
+        return np.vstack(samples), np.vstack(exp_samples)
+    else 
+        return np.vstack(samples), np.vstack(exp_samples), starts
 
 def train_epoch(model, data_iter, criterion, optimizer, generator=True):
     total_loss = []
@@ -296,7 +305,7 @@ if __name__ == "__main__":
 
     # Pretrain Discriminator
     dis_criterion = nn.BCELoss(size_average=True)
-    dis_optimizer = optim.Adam(discriminator.parameters(), lr = 0.0005)
+    dis_optimizer = optim.Adam(discriminator.parameters())
     if opt.cuda:
         dis_criterion = dis_criterion.cuda()
     print ("Pretrain Discriminator ...")
@@ -361,7 +370,7 @@ if __name__ == "__main__":
     total_iter = 0
     for total_batch in range(TOTAL_BATCH):
         ## Train the generator for one step
-        for it in range(2):
+        for it in range(1):
             samp_ind = np.random.choice(train_states.shape[0], BATCH_SIZE)
             mod_samples = torch.from_numpy(train_states[samp_ind].copy())
             starts = Variable(mod_samples[:, :1, :].clone())
@@ -406,6 +415,18 @@ if __name__ == "__main__":
         
     # if opt.file is not None:
     save_model(generator, discriminator, "saved_models/adversarial_trained_models"+str(experiment_num))
+
+    if same_start_set:
+        pretrain_generator, pretrained_discriminator = load_model("pretrained_models_" + str(experiment_num))
+        adversarial_generator, adversarial_discriminator = load_model("adversarial_trained_models" + str(experiment_num))
+        pretrain_trajectories, exp_trajectories, starts = generate_samples(pretrained_generator, 1, 1, train_states, return_start_states=True)
+        adversarial_trajectories, exp_trajectories = generate_samples(pretrained_generator, 1, 1, train_states, definite_start_state=starts)
+        draw_samples(exp_trajectories, show_image=False, save_image=True, name="saved_images/experiment_"+str(experiment_num)+"/"+"SAME_START_EXPERT")
+        draw_samples(pretrain_trajectories, show_image=False, save_image=True, name="saved_images/experiment_"+str(experiment_num)+"/"+"SAME_START_PRETRAIN")
+        draw_samples(adversarial_trajectories, show_image=False, save_image=True, name="saved_images/experiment_"+str(experiment_num)+"/"+"SAME_START_ADVERSARIAL")
+
+
+
 
 
 
