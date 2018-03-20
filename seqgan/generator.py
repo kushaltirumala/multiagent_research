@@ -88,7 +88,7 @@ class Generator(nn.Module):
         if self.use_cuda:
             x = x.cpu()
         x = x.numpy()   ## it seems we don't have clip in pytorch, so have to transfer it to numpy
-        x = np.clip(x, 0, 1.0)
+        # x = np.clip(x, 0, 1.0)
         x = Variable(torch.from_numpy(x))
         if self.use_cuda:
             x = x.cuda()
