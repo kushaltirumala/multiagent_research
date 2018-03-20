@@ -45,7 +45,7 @@ experiment_num = 6
 # Basic Training Paramters
 SEED = 88
 BATCH_SIZE = 32
-TOTAL_BATCH = 10
+TOTAL_BATCH = 5
 GENERATED_NUM = 96
 VOCAB_SIZE = 22
 PRE_EPOCH_NUM = 10
@@ -296,7 +296,7 @@ if __name__ == "__main__":
 
     # Pretrain Discriminator
     dis_criterion = nn.BCELoss(size_average=True)
-    dis_optimizer = optim.Adam(discriminator.parameters())
+    dis_optimizer = optim.Adam(discriminator.parameters(), lr = 0.0005)
     if opt.cuda:
         dis_criterion = dis_criterion.cuda()
     print ("Pretrain Discriminator ...")
@@ -361,7 +361,7 @@ if __name__ == "__main__":
     total_iter = 0
     for total_batch in range(TOTAL_BATCH):
         ## Train the generator for one step
-        for it in range(1):
+        for it in range(2):
             samp_ind = np.random.choice(train_states.shape[0], BATCH_SIZE)
             mod_samples = torch.from_numpy(train_states[samp_ind].copy())
             starts = Variable(mod_samples[:, :1, :].clone())
