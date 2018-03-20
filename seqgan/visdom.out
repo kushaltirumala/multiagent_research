@@ -1,0 +1,19 @@
+nohup: ignoring input
+Traceback (most recent call last):
+  File "/home/ubuntu/anaconda3/lib/python3.6/runpy.py", line 193, in _run_module_as_main
+    "__main__", mod_spec)
+  File "/home/ubuntu/anaconda3/lib/python3.6/runpy.py", line 85, in _run_code
+    exec(code, run_globals)
+  File "/home/ubuntu/anaconda3/lib/python3.6/site-packages/visdom/server.py", line 762, in <module>
+    main()
+  File "/home/ubuntu/anaconda3/lib/python3.6/site-packages/visdom/server.py", line 747, in main
+    app.listen(FLAGS.port, max_buffer_size=1024 ** 3)
+  File "/home/ubuntu/anaconda3/lib/python3.6/site-packages/tornado/web.py", line 1944, in listen
+    server.listen(port, address)
+  File "/home/ubuntu/anaconda3/lib/python3.6/site-packages/tornado/tcpserver.py", line 142, in listen
+    sockets = bind_sockets(port, address=address)
+  File "/home/ubuntu/anaconda3/lib/python3.6/site-packages/tornado/netutil.py", line 197, in bind_sockets
+    sock.bind(sockaddr)
+OSError: [Errno 98] Address already in use
+Downloading scripts. It might take a while.
+It's Alive!

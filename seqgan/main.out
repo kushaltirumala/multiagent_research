@@ -1,0 +1,78 @@
+/home/ubuntu/anaconda3/lib/python3.6/site-packages/matplotlib/__init__.py:962: UserWarning: Duplicate key in file "/home/ubuntu/.config/matplotlib/matplotlibrc", line #2
+  (fname, cnt))
+/home/ubuntu/anaconda3/lib/python3.6/site-packages/matplotlib/__init__.py:962: UserWarning: Duplicate key in file "/home/ubuntu/.config/matplotlib/matplotlibrc", line #3
+  (fname, cnt))
+/home/ubuntu/anaconda3/lib/python3.6/site-packages/skimage/transform/_warps.py:84: UserWarning: The default mode, 'constant', will be changed to 'reflect' in skimage 0.15.
+  warn("The default mode, 'constant', will be changed to 'reflect' in "
+Namespace(cuda=None, file=None)
+Starting to load to data
+(16475, 69, 22)
+[0.01795191 0.02112961 0.01065044 0.0094444  0.01038076 0.00911547
+ 0.01039798 0.0090908  0.01043899 0.00915326 0.01041116 0.00907294
+ 0.00879942 0.00864597 0.00876993 0.00864031 0.00876052 0.00862047
+ 0.00877239 0.00866959 0.00878506 0.00870779] [0.02866    0.03502423 0.01454664 0.01410364 0.0141861  0.01384595
+ 0.0142254  0.01381259 0.01424781 0.01389297 0.01422837 0.01377538
+ 0.01212761 0.01240132 0.01205922 0.0123783  0.01209089 0.01235392
+ 0.01211936 0.01242679 0.01211155 0.01246402] [2.14874208 1.11722061 1.08772653 1.08705337 1.09256275 1.08639749
+ 0.96233201 0.96008966 0.95883081 0.96228865 0.96504313] [0.00145411 0.07182688 0.00604693 0.0827754  0.00694245 0.10280574
+ 0.00698819 0.10224539 0.0064164  0.10053705 0.00715005 0.09794286
+ 0.00220624 0.02058015 0.00239889 0.02231488 0.00209452 0.02409184
+ 0.00225814 0.02149238 0.00231356 0.02135515]
+train_data.shape: (16475, 69, 22) val_data.shape: (4119, 69, 22)
+Done loading data
+Pretrain with log probs ...
+Epoch [0] Model Validation Loss: 20.219529
+Epoch [0] Model Loss: -33.779817
+Epoch [1] Model Loss: -82.478852
+Epoch [2] Model Loss: -85.131524
+Epoch [3] Model Validation Loss: -85.209903
+Epoch [3] Model Loss: -85.640850
+Epoch [4] Model Loss: -85.836486
+Epoch [5] Model Loss: -85.930526
+Epoch [6] Model Validation Loss: -85.867048
+Epoch [6] Model Loss: -85.990323
+Epoch [7] Model Loss: -86.075191
+Epoch [8] Model Loss: -86.084122
+Epoch [9] Model Validation Loss: -85.831560
+Epoch [9] Model Loss: -86.165031
+Pretrain Discriminator ...
+Epoch [0], Iter[0] Validation loss: 0.711487
+Epoch [0], Iter[0] loss: 0.115642
+Epoch [0], Iter[1] loss: 0.062240
+Saving Model
+Drawing
+Drawing
+post pretraining stats: generator validation loss is -85.85078243005243, discriminator validation loss is 0.05204441295877445
+#####################################################
+Start Adversarial Training...
+
+ave_rewards = 0.013035690466268193
+adversial training loss - generator[0]: -1.123753
+ave_rewards = 0.013076498858256297
+adversial training loss - generator[0]: -1.122372
+adversial training loss - discriminator [0]: 0.005183
+Drawing
+Drawing
+ave_rewards = 0.00038935515232711796
+adversial training loss - generator[1]: -0.033578
+ave_rewards = 0.0002150346320791644
+adversial training loss - generator[1]: -0.018558
+adversial training loss - discriminator [1]: 0.003180
+ave_rewards = 1.4306493877110603e-05
+adversial training loss - generator[2]: -0.001240
+ave_rewards = 2.3941732746228545e-05
+adversial training loss - generator[2]: -0.002074
+adversial training loss - discriminator [2]: 0.002421
+ave_rewards = 2.1306353760182595e-05
+adversial training loss - generator[3]: -0.001791
+ave_rewards = 0.019430764328494086
+adversial training loss - generator[3]: -1.679500
+adversial training loss - discriminator [3]: 0.001950
+Drawing
+Drawing
+ave_rewards = 7.361036125599376e-06
+adversial training loss - generator[4]: -0.000649
+ave_rewards = 2.9038389973218704e-05
+adversial training loss - generator[4]: -0.002508
+adversial training loss - discriminator [4]: 0.000100
+Saving Model
