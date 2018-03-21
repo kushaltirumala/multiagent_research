@@ -39,7 +39,7 @@ graph_adversarial_training = None
 graph_adversarial_training_discriminator = None
 graph_pretrain_generator_validation = None
 graph_pretrain_discriminator_validation = None
-experiment_num = 7
+experiment_num = 8
 
 same_start_set = True
 
@@ -47,7 +47,7 @@ same_start_set = True
 # Basic Training Paramters
 SEED = 88
 BATCH_SIZE = 32
-TOTAL_BATCH = 15
+TOTAL_BATCH = 10
 GENERATED_NUM = 96
 VOCAB_SIZE = 22
 PRE_EPOCH_NUM = 10
@@ -305,7 +305,7 @@ if __name__ == "__main__":
 
     # Pretrain Discriminator
     dis_criterion = nn.BCELoss(size_average=True)
-    dis_optimizer = optim.Adam(discriminator.parameters())
+    dis_optimizer = optim.Adam(discriminator.parameters(), lr=0.0005)
     if opt.cuda:
         dis_criterion = dis_criterion.cuda()
     print ("Pretrain Discriminator ...")
@@ -370,7 +370,7 @@ if __name__ == "__main__":
     total_iter = 0
     for total_batch in range(TOTAL_BATCH):
         ## Train the generator for one step
-        for it in range(1):
+        for it in range(3):
             samp_ind = np.random.choice(train_states.shape[0], BATCH_SIZE)
             mod_samples = torch.from_numpy(train_states[samp_ind].copy())
             starts = Variable(mod_samples[:, :1, :].clone())
@@ -417,8 +417,8 @@ if __name__ == "__main__":
     save_model(generator, discriminator, "saved_models/adversarial_trained_models"+str(experiment_num))
 
     if same_start_set:
-        pretrain_generator, pretrained_discriminator = load_model("pretrained_models_" + str(experiment_num))
-        adversarial_generator, adversarial_discriminator = load_model("adversarial_trained_models" + str(experiment_num))
+        pretrain_generator, pretrained_discriminator = load_model("saved_models/pretrained_models_" + str(experiment_num))
+        adversarial_generator, adversarial_discriminator = load_model("saved_models/adversarial_trained_models" + str(experiment_num))
         pretrain_trajectories, exp_trajectories, starts = generate_samples(pretrained_generator, 1, 1, train_states, return_start_states=True)
         adversarial_trajectories, exp_trajectories = generate_samples(pretrained_generator, 1, 1, train_states, definite_start_state=starts)
         draw_samples(exp_trajectories, show_image=False, save_image=True, name="SAME_START_EXPERT")
