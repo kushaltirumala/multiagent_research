@@ -39,7 +39,7 @@ graph_adversarial_training = None
 graph_adversarial_training_discriminator = None
 graph_pretrain_generator_validation = None
 graph_pretrain_discriminator_validation = None
-experiment_num = 8
+experiment_num = 9
 
 same_start_set = True
 
@@ -274,7 +274,7 @@ if __name__ == "__main__":
     #generator, discriminator = load_model("saved_models/pretrained_model_1_layer.p")
     
     # Define Networks
-    generator = Generator(g_state_dim, g_hidden_dim, g_action_dim, opt.cuda, num_layers=1).double()
+    generator = Generator(g_state_dim, g_hidden_dim, g_action_dim, opt.cuda, num_layers=5).double()
     discriminator = Discriminator(d_num_class, d_state_dim, d_hidden_dim, num_layers=1).double()
     if opt.cuda:
         generator = generator.cuda()
@@ -422,7 +422,7 @@ if __name__ == "__main__":
         pretrain_generator, pretrained_discriminator = load_model("saved_models/pretrained_models_" + str(experiment_num))
         adversarial_generator, adversarial_discriminator = load_model("saved_models/adversarial_trained_models" + str(experiment_num))
         pretrain_trajectories, exp_trajectories, starts = generate_samples(pretrain_generator, 1, 1, train_states, return_start_states=True)
-        adversarial_trajectories, exp_trajectories = generate_samples(adversarial_generator, 1, 1, train_states, definite_start_state=starts)
+        adversarial_trajectories = generate_samples(adversarial_generator, 1, 1, train_states, definite_start_state=starts)
         draw_samples(exp_trajectories, show_image=False, save_image=True, name="SAME_START_EXPERT")
         draw_samples(pretrain_trajectories, show_image=False, save_image=True, name="SAME_START_PRETRAIN")
         draw_samples(adversarial_trajectories, show_image=False, save_image=True, name="SAME_START_ADVERSARIAL")
