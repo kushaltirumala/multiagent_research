@@ -1,0 +1,119 @@
+/home/ubuntu/anaconda3/lib/python3.6/site-packages/matplotlib/__init__.py:962: UserWarning: Duplicate key in file "/home/ubuntu/.config/matplotlib/matplotlibrc", line #2
+  (fname, cnt))
+/home/ubuntu/anaconda3/lib/python3.6/site-packages/matplotlib/__init__.py:962: UserWarning: Duplicate key in file "/home/ubuntu/.config/matplotlib/matplotlibrc", line #3
+  (fname, cnt))
+/home/ubuntu/anaconda3/lib/python3.6/site-packages/skimage/transform/_warps.py:84: UserWarning: The default mode, 'constant', will be changed to 'reflect' in skimage 0.15.
+  warn("The default mode, 'constant', will be changed to 'reflect' in "
+Namespace(cuda=None, file=None)
+Starting to load to data
+(16475, 69, 22)
+[0.01795191 0.02112961 0.01065044 0.0094444  0.01038076 0.00911547
+ 0.01039798 0.0090908  0.01043899 0.00915326 0.01041116 0.00907294
+ 0.00879942 0.00864597 0.00876993 0.00864031 0.00876052 0.00862047
+ 0.00877239 0.00866959 0.00878506 0.00870779] [0.02866    0.03502423 0.01454664 0.01410364 0.0141861  0.01384595
+ 0.0142254  0.01381259 0.01424781 0.01389297 0.01422837 0.01377538
+ 0.01212761 0.01240132 0.01205922 0.0123783  0.01209089 0.01235392
+ 0.01211936 0.01242679 0.01211155 0.01246402] [2.14874208 1.11722061 1.08772653 1.08705337 1.09256275 1.08639749
+ 0.96233201 0.96008966 0.95883081 0.96228865 0.96504313] [0.00145411 0.07182688 0.00604693 0.0827754  0.00694245 0.10280574
+ 0.00698819 0.10224539 0.0064164  0.10053705 0.00715005 0.09794286
+ 0.00220624 0.02058015 0.00239889 0.02231488 0.00209452 0.02409184
+ 0.00225814 0.02149238 0.00231356 0.02135515]
+train_data.shape: (16475, 69, 22) val_data.shape: (4119, 69, 22)
+Done loading data
+Pretrain with log probs ...
+Epoch [0] Model Validation Loss: 20.219561
+Epoch [0] Model Loss: -33.733781
+Epoch [1] Model Loss: -74.558721
+Epoch [2] Model Loss: -66.979671
+Epoch [3] Model Validation Loss: -67.973167
+Epoch [3] Model Loss: -68.880224
+Epoch [4] Model Loss: -70.569454
+Epoch [5] Model Loss: -73.103675
+Epoch [6] Model Validation Loss: -74.039879
+Epoch [6] Model Loss: -74.944634
+Epoch [7] Model Loss: -76.220671
+Epoch [8] Model Loss: -77.367632
+Epoch [9] Model Validation Loss: -77.799018
+Epoch [9] Model Loss: -78.147333
+Pretrain Discriminator ...
+Epoch [0], Iter[0] Validation loss: 0.751668
+Epoch [0], Iter[0] loss: 0.015950
+Epoch [0], Iter[1] loss: 0.002430
+Epoch [1], Iter[0] loss: 0.002372
+Epoch [1], Iter[1] Validation loss: 0.001219
+Epoch [1], Iter[1] loss: 0.000806
+Epoch [2], Iter[0] loss: 0.000599
+Epoch [2], Iter[1] loss: 0.000690
+Epoch [3], Iter[0] Validation loss: 0.002119
+Epoch [3], Iter[0] loss: 0.005618
+Epoch [3], Iter[1] loss: 0.001510
+Saving Model
+Drawing
+Drawing
+post pretraining stats: generator validation loss is -78.19811957186938, discriminator validation loss is 0.00019579476659704754
+#####################################################
+Start Adversarial Training...
+
+ave_rewards = 0.0003398600161394364
+adversial training loss - generator[0]: -0.026807
+adversial training loss - discriminator [0]: 0.000294
+Drawing
+Drawing
+ave_rewards = 8.285397099494817e-07
+adversial training loss - generator[1]: -0.000065
+adversial training loss - discriminator [1]: 0.000272
+ave_rewards = 1.645966910682879e-05
+adversial training loss - generator[2]: -0.001301
+adversial training loss - discriminator [2]: 0.000008
+ave_rewards = 1.1566922088541071e-06
+adversial training loss - generator[3]: -0.000091
+adversial training loss - discriminator [3]: 0.000004
+Drawing
+Drawing
+ave_rewards = 5.539631372195393e-07
+adversial training loss - generator[4]: -0.000042
+adversial training loss - discriminator [4]: 0.000003
+ave_rewards = 9.35862491961951e-05
+adversial training loss - generator[5]: -0.007223
+adversial training loss - discriminator [5]: 0.000002
+ave_rewards = 2.5932719333384307e-07
+adversial training loss - generator[6]: -0.000021
+adversial training loss - discriminator [6]: 0.000001
+Drawing
+Drawing
+ave_rewards = 1.6597832393771026e-08
+adversial training loss - generator[7]: -0.000001
+adversial training loss - discriminator [7]: 0.000001
+ave_rewards = 2.3934912862627386e-06
+adversial training loss - generator[8]: -0.000186
+adversial training loss - discriminator [8]: 0.000000
+ave_rewards = 1.0939576971525063e-07
+adversial training loss - generator[9]: -0.000009
+adversial training loss - discriminator [9]: 0.000000
+Drawing
+Drawing
+ave_rewards = 4.617635497159604e-09
+adversial training loss - generator[10]: -0.000000
+adversial training loss - discriminator [10]: 0.000000
+ave_rewards = 2.0127582901839446e-08
+adversial training loss - generator[11]: -0.000002
+adversial training loss - discriminator [11]: 0.000000
+ave_rewards = 6.027068488281587e-09
+adversial training loss - generator[12]: -0.000000
+adversial training loss - discriminator [12]: 0.000000
+Drawing
+Drawing
+ave_rewards = 1.4622737265279406e-09
+adversial training loss - generator[13]: -0.000000
+adversial training loss - discriminator [13]: 0.000000
+ave_rewards = 2.3318246850428657e-09
+adversial training loss - generator[14]: -0.000000
+adversial training loss - discriminator [14]: 0.000000
+Saving Model
+Loading learned model
+Traceback (most recent call last):
+  File "main.py", line 420, in <module>
+    pretrain_generator, pretrained_discriminator = load_model("pretrained_models_" + str(experiment_num))
+  File "main.py", line 80, in load_model
+    generator, discriminator = pickle.load(open(path, 'rb'))
+FileNotFoundError: [Errno 2] No such file or directory: 'pretrained_models_7'
