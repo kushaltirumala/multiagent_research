@@ -122,7 +122,9 @@ def generate_samples(model, batch_size, generated_num, train_states, definite_st
 
         sample = model.sample(batch_size, g_sequence_len, starts)[0].cpu().data.numpy()
         samples.append(sample)
-    if not return_start_states:
+    if not return_start_states and definite_start_state is not None:
+        return np.vstack(samples)
+    elif not return_start_states:
         return np.vstack(samples), np.vstack(exp_samples)
     else:
         return np.vstack(samples), np.vstack(exp_samples), starts
@@ -419,8 +421,8 @@ if __name__ == "__main__":
     if same_start_set:
         pretrain_generator, pretrained_discriminator = load_model("saved_models/pretrained_models_" + str(experiment_num))
         adversarial_generator, adversarial_discriminator = load_model("saved_models/adversarial_trained_models" + str(experiment_num))
-        pretrain_trajectories, exp_trajectories, starts = generate_samples(pretrained_generator, 1, 1, train_states, return_start_states=True)
-        adversarial_trajectories, exp_trajectories = generate_samples(pretrained_generator, 1, 1, train_states, definite_start_state=starts)
+        pretrain_trajectories, exp_trajectories, starts = generate_samples(pretrain_generator, 1, 1, train_states, return_start_states=True)
+        adversarial_trajectories, exp_trajectories = generate_samples(adversarial_generator, 1, 1, train_states, definite_start_state=starts)
         draw_samples(exp_trajectories, show_image=False, save_image=True, name="SAME_START_EXPERT")
         draw_samples(pretrain_trajectories, show_image=False, save_image=True, name="SAME_START_PRETRAIN")
         draw_samples(adversarial_trajectories, show_image=False, save_image=True, name="SAME_START_ADVERSARIAL")
