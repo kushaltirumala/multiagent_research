@@ -103,3 +103,4 @@ ENV/
 seqgan/anon/
 
 *.DS_STORE
+*.DS_Store
