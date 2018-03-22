@@ -101,3 +101,5 @@ ENV/
 .mypy_cache/
 
 seqgan/anon/
+
+*.DS_STORE
