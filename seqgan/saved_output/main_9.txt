@@ -1,0 +1,140 @@
+/home/ubuntu/anaconda3/lib/python3.6/site-packages/matplotlib/__init__.py:962: UserWarning: Duplicate key in file "/home/ubuntu/.config/matplotlib/matplotlibrc", line #2
+  (fname, cnt))
+/home/ubuntu/anaconda3/lib/python3.6/site-packages/matplotlib/__init__.py:962: UserWarning: Duplicate key in file "/home/ubuntu/.config/matplotlib/matplotlibrc", line #3
+  (fname, cnt))
+/home/ubuntu/anaconda3/lib/python3.6/site-packages/skimage/transform/_warps.py:84: UserWarning: The default mode, 'constant', will be changed to 'reflect' in skimage 0.15.
+  warn("The default mode, 'constant', will be changed to 'reflect' in "
+Namespace(cuda=None, file=None)
+Starting to load to data
+(16475, 69, 22)
+[0.01795191 0.02112961 0.01065044 0.0094444  0.01038076 0.00911547
+ 0.01039798 0.0090908  0.01043899 0.00915326 0.01041116 0.00907294
+ 0.00879942 0.00864597 0.00876993 0.00864031 0.00876052 0.00862047
+ 0.00877239 0.00866959 0.00878506 0.00870779] [0.02866    0.03502423 0.01454664 0.01410364 0.0141861  0.01384595
+ 0.0142254  0.01381259 0.01424781 0.01389297 0.01422837 0.01377538
+ 0.01212761 0.01240132 0.01205922 0.0123783  0.01209089 0.01235392
+ 0.01211936 0.01242679 0.01211155 0.01246402] [2.14874208 1.11722061 1.08772653 1.08705337 1.09256275 1.08639749
+ 0.96233201 0.96008966 0.95883081 0.96228865 0.96504313] [0.00145411 0.07182688 0.00604693 0.0827754  0.00694245 0.10280574
+ 0.00698819 0.10224539 0.0064164  0.10053705 0.00715005 0.09794286
+ 0.00220624 0.02058015 0.00239889 0.02231488 0.00209452 0.02409184
+ 0.00225814 0.02149238 0.00231356 0.02135515]
+train_data.shape: (16475, 69, 22) val_data.shape: (4119, 69, 22)
+Done loading data
+Pretrain with log probs ...
+Epoch [0] Model Validation Loss: 20.219569
+Epoch [0] Model Loss: -31.074669
+Epoch [1] Model Loss: -62.819347
+Epoch [2] Model Loss: -62.921714
+Epoch [3] Model Validation Loss: -62.887427
+Epoch [3] Model Loss: -62.932095
+Epoch [4] Model Loss: -62.919005
+Epoch [5] Model Loss: -62.935189
+Epoch [6] Model Validation Loss: -62.982353
+Epoch [6] Model Loss: -62.935942
+Epoch [7] Model Loss: -62.954112
+Epoch [8] Model Loss: -62.935042
+Epoch [9] Model Validation Loss: -62.943132
+Epoch [9] Model Loss: -62.982155
+Pretrain Discriminator ...
+Epoch [0], Iter[0] Validation loss: 0.671478
+Epoch [0], Iter[0] loss: 0.328181
+Epoch [0], Iter[1] loss: 0.158192
+Epoch [1], Iter[0] loss: 0.111214
+Epoch [1], Iter[1] Validation loss: 0.083748
+Epoch [1], Iter[1] loss: 0.074321
+Epoch [2], Iter[0] loss: 0.055864
+Epoch [2], Iter[1] loss: 0.044634
+Epoch [3], Iter[0] Validation loss: 0.035636
+Epoch [3], Iter[0] loss: 0.036804
+Epoch [3], Iter[1] loss: 0.030971
+Saving Model
+Drawing
+Drawing
+post pretraining stats: generator validation loss is -63.00711667483811, discriminator validation loss is 0.03335663699369638
+#####################################################
+Start Adversarial Training...
+
+ave_rewards = 0.011081362490342936
+adversial training loss - generator[0]: -0.697695
+ave_rewards = 0.006228084831697158
+adversial training loss - generator[0]: -0.391632
+ave_rewards = 0.0004364235711293189
+adversial training loss - generator[0]: -0.027573
+adversial training loss - discriminator [0]: 0.002104
+Drawing
+Drawing
+ave_rewards = 0.0008048065393689779
+adversial training loss - generator[1]: -0.050986
+ave_rewards = 0.00021916110303098343
+adversial training loss - generator[1]: -0.013823
+ave_rewards = 5.5706572362560904e-06
+adversial training loss - generator[1]: -0.000350
+adversial training loss - discriminator [1]: 0.000299
+ave_rewards = 0.0009848063602650272
+adversial training loss - generator[2]: -0.063094
+ave_rewards = 7.798571099479653e-05
+adversial training loss - generator[2]: -0.004845
+ave_rewards = 6.192108071959319e-06
+adversial training loss - generator[2]: -0.000388
+adversial training loss - discriminator [2]: 0.000020
+ave_rewards = 2.4856561078155657e-05
+adversial training loss - generator[3]: -0.001625
+ave_rewards = 8.912800454939441e-06
+adversial training loss - generator[3]: -0.000589
+ave_rewards = 2.6982364696302204e-05
+adversial training loss - generator[3]: -0.001680
+adversial training loss - discriminator [3]: 0.000005
+Drawing
+Drawing
+ave_rewards = 2.670795400612903e-07
+adversial training loss - generator[4]: -0.000017
+ave_rewards = 7.496330645660692e-08
+adversial training loss - generator[4]: -0.000005
+ave_rewards = 1.6746035209920285e-05
+adversial training loss - generator[4]: -0.001124
+adversial training loss - discriminator [4]: 0.000003
+ave_rewards = 5.181819975747806e-07
+adversial training loss - generator[5]: -0.000034
+ave_rewards = 3.075694088617895e-08
+adversial training loss - generator[5]: -0.000002
+ave_rewards = 1.3685493701867107e-09
+adversial training loss - generator[5]: -0.000000
+adversial training loss - discriminator [5]: 0.000003
+ave_rewards = 9.75714325276207e-05
+adversial training loss - generator[6]: -0.006078
+ave_rewards = 6.97243657737522e-09
+adversial training loss - generator[6]: -0.000000
+ave_rewards = 1.0790265482453935e-08
+adversial training loss - generator[6]: -0.000001
+adversial training loss - discriminator [6]: 0.000002
+Drawing
+Drawing
+ave_rewards = 1.5556264241658064e-09
+adversial training loss - generator[7]: -0.000000
+ave_rewards = 1.1106961573326709e-10
+adversial training loss - generator[7]: -0.000000
+ave_rewards = 2.8867692192599672e-11
+adversial training loss - generator[7]: -0.000000
+adversial training loss - discriminator [7]: 0.000000
+ave_rewards = 9.364919390861843e-12
+adversial training loss - generator[8]: -0.000000
+ave_rewards = 2.386027214096655e-12
+adversial training loss - generator[8]: -0.000000
+ave_rewards = 2.853014007708654e-10
+adversial training loss - generator[8]: -0.000000
+adversial training loss - discriminator [8]: 0.000000
+ave_rewards = 4.873754521185858e-10
+adversial training loss - generator[9]: -0.000000
+ave_rewards = 8.596567953412715e-11
+adversial training loss - generator[9]: -0.000000
+ave_rewards = 5.4040663382191915e-12
+adversial training loss - generator[9]: -0.000000
+adversial training loss - discriminator [9]: 0.000000
+Drawing
+Drawing
+Saving Model
+Loading learned model
+Loading learned model
+Drawing
+Drawing
+Drawing
