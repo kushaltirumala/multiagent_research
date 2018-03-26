@@ -39,14 +39,14 @@ graph_adversarial_training = None
 graph_adversarial_training_discriminator = None
 graph_pretrain_generator_validation = None
 graph_pretrain_discriminator_validation = None
-experiment_num = 9
+experiment_num = 10
 
 same_start_set = True
 
 
 # Basic Training Paramters
 SEED = 88
-BATCH_SIZE = 32
+BATCH_SIZE = 32 
 TOTAL_BATCH = 10
 GENERATED_NUM = 96
 VOCAB_SIZE = 22
