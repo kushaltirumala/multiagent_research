@@ -1,14 +1,17 @@
+# -*- coding: utf-8 -*-
+
 import os
 import math
 import random
 import torch
 import torch.nn as nn
-import torch.nn.functional as functional
+import torch.nn.functional as F
 from torch.autograd import Variable
 from utils.math_utils import *
 
 class Target_LSTM(nn.Module):
-	def __init__(self, state_dim, hidden_dim, action_dim, use_cuda, log_std=0.0, num_layers=2):
+    """Generator """
+    def __init__(self, state_dim, hidden_dim, action_dim, use_cuda, log_std=0.0, num_layers=2):
         super(Target_LSTM, self).__init__()
         self.state_dim = state_dim
         self.hidden_dim = hidden_dim
@@ -54,7 +57,7 @@ class Target_LSTM(nn.Module):
     
     def init_params(self):
         for param in self.parameters():
-            param.data.uniform_(0, 1)
+            param.data.uniform_(-0.05, 0.05)
 
     def get_log_prob(self, x, actions):
         """
@@ -92,18 +95,17 @@ class Target_LSTM(nn.Module):
 
         return x  # Variable
 
-    def sample(self, batch_size, seq_len, x): ## x is initial state or roll-out histories
+    def sample(self, batch_size, seq_len):
         h = self.init_hidden(batch_size)
         samples = []
         actions = []
-        given_len = x.size(1)
-        if given_len == 1:
-            for i in range(seq_len):
-                samples.append(x)
-                action, h = self.select_action(x, h)
-                actions.append(action)
-                x = self.env(x, action)
+        x = Variable(torch.zeros((batch_size, 1, self.state_dim)).double())
+        for i in range(seq_len):
+            action, h = self.select_action(x, h)
+            actions.append(action)
+            x = self.env(x, action)
+            samples.append(x)
     
-            output = torch.cat(samples, dim=1)
-            actions = torch.cat(actions, dim=1)
-            return output, actions
+        output = torch.cat(samples, dim=1)
+        actions = torch.cat(actions, dim=1)
+        return output, actions

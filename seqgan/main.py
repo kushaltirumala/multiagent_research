@@ -101,21 +101,17 @@ def draw_samples(states, show_image=True, save_image=False, name=None):
     else:
         plot_sequences([draw_data], macro_goals=None, colormap=colormap, save_name="saved_images/experiment_"+str(experiment_num)+"/"+name+"_offense", show=False, burn_in=0)
         
-def target_lstm_generate_samples(model, batch_size, generated_num, starts):
+def target_lstm_generate_samples(model, batch_size, generated_num):
     samples = []
     actions = []
     for _ in range(int(generated_num/batch_size)):
-        # generate random samples
-        if len(samples) == 0:
-            # means first iteration
-            actions.append(np.zeros(len(samples)))
-        else:
-            actions.append(samples[len(samples)-1])
-
-        sample = model.sample(batch_size, g_sequence_len, starts)[0].cpu().data.numpy()
+        temp = model.sample(batch_size, g_sequence_len)
+        sample = temp[0].cpu().data.numpy()
+        action = temp[1].cpu().data.numpy()
         samples.append(sample)
+        actions.append(action)
 
-    return np.vstack(samples), np.vstack(action)      
+    return np.vstack(samples), np.vstack(actions)      
 
 def generate_samples(model, batch_size, generated_num, train_states, definite_start_state=None, return_start_states=False):
     samples = []
@@ -281,8 +277,7 @@ if __name__ == "__main__":
     # Geneating data with target lstm
     target_lstm = Target_LSTM(g_state_dim, g_hidden_dim, g_action_dim, opt.cuda, num_layers=1).double()
     # generate random starts
-    starts = []
-    train_states, train_actions = target_lstm_generate_samples(target_lstm, BATCH_SIZE, GENERATED_NUM, starts)
+    train_states, train_actions = target_lstm_generate_samples(target_lstm, BATCH_SIZE, GENERATED_NUM)
     
     print ("Done loading data")
     random.seed(SEED)
