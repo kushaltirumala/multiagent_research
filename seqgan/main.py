@@ -17,6 +17,7 @@ from torch.autograd import Variable
 
 from generator import Generator
 from discriminator import Discriminator
+from target_lstm import Target_LSTM
 from rollout import Rollout
 from data_iter import GenDataIter, DisDataIter
 from utils.draw_tools import plot_sequences
@@ -100,6 +101,21 @@ def draw_samples(states, show_image=True, save_image=False, name=None):
     else:
         plot_sequences([draw_data], macro_goals=None, colormap=colormap, save_name="saved_images/experiment_"+str(experiment_num)+"/"+name+"_offense", show=False, burn_in=0)
         
+def target_lstm_generate_samples(model, batch_size, generated_num, starts):
+    samples = []
+    actions = []
+    for _ in range(int(generated_num/batch_size)):
+        # generate random samples
+        if len(samples) == 0:
+            # means first iteration
+            actions.append(np.zeros(len(samples)))
+        else:
+            actions.append(samples[len(samples)-1])
+
+        sample = model.sample(batch_size, g_sequence_len, starts)[0].cpu().data.numpy()
+        samples.append(sample)
+
+    return np.vstack(samples), np.vstack(action)      
 
 def generate_samples(model, batch_size, generated_num, train_states, definite_start_state=None, return_start_states=False):
     samples = []
@@ -262,23 +278,24 @@ def load_expert_data(num):
 
 if __name__ == "__main__":
     print ("Starting to load to data")
-    train_states, train_actions, val_states, val_actions, exp_ave_stepsize, exp_std_stepsize, exp_ave_length, exp_ave_near_bound \
-        = load_expert_data(40000)
+    # Geneating data with target lstm
+    target_lstm = Target_LSTM(g_state_dim, g_hidden_dim, g_action_dim, opt.cuda, num_layers=1).double()
+    # generate random starts
+    starts = []
+    train_states, train_actions = target_lstm_generate_samples(target_lstm, BATCH_SIZE, GENERATED_NUM, starts)
+    
     print ("Done loading data")
     random.seed(SEED)
     np.random.seed(SEED)
 
-    # ------------------------------------------------------------------------
-    # NOTE CAN USE THIS TO LOAD PRETRAINED MODELS INSTEAD OF DOING STUFF BELOW
-    # ------------------------------------------------------------------------
-    #generator, discriminator = load_model("saved_models/pretrained_model_1_layer.p")
-    
     # Define Networks
-    generator = Generator(g_state_dim, g_hidden_dim, g_action_dim, opt.cuda, num_layers=5).double()
+    generator = Generator(g_state_dim, g_hidden_dim, g_action_dim, opt.cuda, num_layers=1).double()
     discriminator = Discriminator(d_num_class, d_state_dim, d_hidden_dim, num_layers=1).double()
+
     if opt.cuda:
         generator = generator.cuda()
         discriminator = discriminator.cuda()
+        target_lstm = target_lstm.cuda()
     
     # Load data from file
     gen_data_iter = GenDataIter(train_states, train_actions, BATCH_SIZE)
@@ -287,19 +304,12 @@ if __name__ == "__main__":
     # Pretrain Generator using MLE
     gen_criterion = nn.BCELoss(size_average=False)
     gen_optimizer = optim.Adam(generator.parameters(), lr=0.01)
+
     if opt.cuda:
         gen_criterion = gen_criterion.cuda()
+
     print('Pretrain with log probs ...')
     for epoch in range(PRE_EPOCH_NUM):
-        if epoch % VAL_FREQ == 0:
-            validation_loss = eval_epoch(generator, gen_val_data_iter, gen_criterion)
-            print('Epoch [%d] Model Validation Loss: %f'% (epoch, validation_loss))
-            update = None if graph_pretrain_generator_validation is None else 'append'
-            graph_pretrain_generator_validation = vis.line(X = np.array([epoch]), Y = np.array([validation_loss]), win = graph_pretrain_generator_validation, update = update, opts=dict(title="pretrain generator validation curve"))
-            if draw_pretrained_discriminator_images: 
-                mod_samples, exp_samples = generate_samples(generator, 1, 1, train_states)
-                draw_samples(mod_samples, show_image=False, save_image=True, name="generated_" + str(epoch))
-                draw_samples(exp_samples, show_image=False, save_image=True, name="expert_" + str(epoch))
         loss = train_epoch(generator, gen_data_iter, gen_criterion, gen_optimizer)
         print('Epoch [%d] Model Loss: %f'% (epoch, loss))
         update = None if graph_pretrain_generator is None else 'append'
@@ -311,47 +321,12 @@ if __name__ == "__main__":
     if opt.cuda:
         dis_criterion = dis_criterion.cuda()
     print ("Pretrain Discriminator ...")
-    total_iter = 0
     for epoch in range(4):
         generated_samples, exp_samples = generate_samples(generator, BATCH_SIZE, train_states.shape[0], train_states)
         dis_data_iter = DisDataIter(train_states, generated_samples, BATCH_SIZE)
-        if total_iter % VAL_FREQ == 0:
-            dis_val_data_iter = DisDataIter(val_states, generated_samples, BATCH_SIZE)
         for _ in range(2):
-            if total_iter % VAL_FREQ == 0:
-                validation_loss = eval_epoch(discriminator, dis_val_data_iter, dis_criterion, generator=False)
-                print('Epoch [%d], Iter[%d] Validation loss: %f' % (epoch, _, validation_loss))
-                update = None if graph_pretrain_discriminator_validation is None else 'append'
-                graph_pretrain_discriminator_validation = vis.line(X = np.array([epoch]), Y = np.array([validation_loss]), win = graph_pretrain_discriminator_validation, update = update, opts=dict(title="pretrain discriminator validation curve"))
             loss = train_epoch(discriminator, dis_data_iter, dis_criterion, dis_optimizer, generator=False)
             print('Epoch [%d], Iter[%d] loss: %f' % (epoch, _, loss))
-            update = None if graph_pretrain_discriminator is None else 'append'
-            graph_pretrain_discriminator = vis.line(X = np.array([total_iter]), Y = np.array([loss]), win = graph_pretrain_discriminator, update = update, opts=dict(title="pretrain discriminator training curve"))
-            total_iter += 1
-            
-    save_model(generator, discriminator, "saved_models/"+str("pretrained_models_"+str(experiment_num)))
-    
-    # ------------------------------------------------------------------------
-    # AFTER PRETRAIN, OUTPUT SOME VALIDATION RESULTS AND IMAGES FOR REFERENCE
-    # ------------------------------------------------------------------------
-    
-    gen_criterion = nn.BCELoss(size_average=True)
-    if opt.cuda:
-        gen_criterion = gen_criterion.cuda()
-    gen_val_data_iter = GenDataIter(val_states, val_actions, BATCH_SIZE)
-    gen_loss = eval_epoch(generator, gen_val_data_iter, gen_criterion)
-    mod_samples, exp_samples = generate_samples(generator, 1, 1, train_states)
-    draw_samples(mod_samples, show_image=False, save_image=True, name="pretrained_generated")
-    draw_samples(exp_samples, show_image=False, save_image=True, name="pretrained_expert")
-    
-    dis_criterion = nn.BCELoss(size_average=True)
-    if opt.cuda:
-        dis_criterion = dis_criterion.cuda()
-    generated_samples, exp_samples = generate_samples(generator, BATCH_SIZE, val_states.shape[0], val_states)
-    dis_val_data_iter = DisDataIter(val_states, generated_samples, BATCH_SIZE)
-    dis_loss = eval_epoch(discriminator, dis_val_data_iter, dis_criterion, generator=False)
-    
-    print("post pretraining stats: generator validation loss is {}, discriminator validation loss is {}".format(gen_loss, dis_loss))
     
     
     # Adversarial Training 
@@ -414,18 +389,7 @@ if __name__ == "__main__":
             mod_samples, exp_samples = generate_samples(generator, 1, 1, train_states)
             draw_samples(mod_samples, show_image=False, save_image=True, name="GAN_generated_" + str(total_batch))
             draw_samples(exp_samples, show_image=False, save_image=True, name="GAN_expert_" + str(total_batch))
-        
-    # if opt.file is not None:
-    save_model(generator, discriminator, "saved_models/adversarial_trained_models"+str(experiment_num))
 
-    if same_start_set:
-        pretrain_generator, pretrained_discriminator = load_model("saved_models/pretrained_models_" + str(experiment_num))
-        adversarial_generator, adversarial_discriminator = load_model("saved_models/adversarial_trained_models" + str(experiment_num))
-        pretrain_trajectories, exp_trajectories, starts = generate_samples(pretrain_generator, 1, 1, train_states, return_start_states=True)
-        adversarial_trajectories = generate_samples(adversarial_generator, 1, 1, train_states, definite_start_state=starts)
-        draw_samples(exp_trajectories, show_image=False, save_image=True, name="SAME_START_EXPERT")
-        draw_samples(pretrain_trajectories, show_image=False, save_image=True, name="SAME_START_PRETRAIN")
-        draw_samples(adversarial_trajectories, show_image=False, save_image=True, name="SAME_START_ADVERSARIAL")
 
 
 
