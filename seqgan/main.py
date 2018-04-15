@@ -294,7 +294,6 @@ if __name__ == "__main__":
     
     # Load data from file
     gen_data_iter = GenDataIter(train_states, train_actions, BATCH_SIZE)
-    gen_val_data_iter = GenDataIter(val_states, val_actions, BATCH_SIZE)
 
     # Pretrain Generator using MLE
     gen_criterion = nn.BCELoss(size_average=False)
