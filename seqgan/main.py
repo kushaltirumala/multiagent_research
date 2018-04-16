@@ -314,6 +314,7 @@ if __name__ == "__main__":
     dis_optimizer = optim.Adam(discriminator.parameters(), lr=0.000001)
     if opt.cuda:
         dis_criterion = dis_criterion.cuda()
+    total_iter = 0
     print ("Pretrain Discriminator ...")
     for epoch in range(4):
         generated_samples, exp_samples = generate_samples(generator, BATCH_SIZE, train_states.shape[0], train_states)
@@ -323,7 +324,7 @@ if __name__ == "__main__":
             print('Epoch [%d], Iter[%d] loss: %f' % (epoch, _, loss))
             update = None if graph_pretrain_discriminator is None else 'append'
             graph_pretrain_discriminator = vis.line(X = np.array([total_iter]), Y = np.array([loss]), win = graph_pretrain_discriminator, update = update, opts=dict(title="pretrain discriminator training curve"))
-    
+            total_iter += 1
     
     # Adversarial Training 
     rollout = Rollout(generator, 0.8)
