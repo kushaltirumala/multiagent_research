@@ -40,7 +40,7 @@ graph_adversarial_training = None
 graph_adversarial_training_discriminator = None
 graph_pretrain_generator_validation = None
 graph_pretrain_discriminator_validation = None
-experiment_num = 10
+experiment_num = 11
 
 same_start_set = True
 
@@ -48,10 +48,10 @@ same_start_set = True
 # Basic Training Paramters
 SEED = 88
 BATCH_SIZE = 32 
-TOTAL_BATCH = 10
+TOTAL_BATCH = 100
 GENERATED_NUM = 96
 VOCAB_SIZE = 22
-PRE_EPOCH_NUM = 10
+PRE_EPOCH_NUM = 20
 VAL_FREQ = 3
 
 '''
@@ -297,7 +297,7 @@ if __name__ == "__main__":
 
     # Pretrain Generator using MLE
     gen_criterion = nn.BCELoss(size_average=False)
-    gen_optimizer = optim.Adam(generator.parameters(), lr=0.01)
+    gen_optimizer = optim.Adam(generator.parameters(), lr=0.001)
 
     if opt.cuda:
         gen_criterion = gen_criterion.cuda()
@@ -311,7 +311,7 @@ if __name__ == "__main__":
 
     # Pretrain Discriminator
     dis_criterion = nn.BCELoss(size_average=True)
-    dis_optimizer = optim.Adam(discriminator.parameters(), lr=0.0005)
+    dis_optimizer = optim.Adam(discriminator.parameters(), lr=0.000001)
     if opt.cuda:
         dis_criterion = dis_criterion.cuda()
     print ("Pretrain Discriminator ...")
@@ -335,7 +335,7 @@ if __name__ == "__main__":
     if opt.cuda:
         gen_criterion = gen_criterion.cuda()
     dis_criterion = nn.BCELoss(size_average=True)
-    dis_optimizer = optim.Adam(discriminator.parameters(), lr = 0.00005)
+    dis_optimizer = optim.Adam(discriminator.parameters(), lr=0.000001)
     if opt.cuda:
         dis_criterion = dis_criterion.cuda()
     total_iter = 0
