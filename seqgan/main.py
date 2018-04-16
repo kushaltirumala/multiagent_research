@@ -321,6 +321,8 @@ if __name__ == "__main__":
         for _ in range(2):
             loss = train_epoch(discriminator, dis_data_iter, dis_criterion, dis_optimizer, generator=False)
             print('Epoch [%d], Iter[%d] loss: %f' % (epoch, _, loss))
+            update = None if graph_pretrain_discriminator is None else 'append'
+            graph_pretrain_discriminator = vis.line(X = np.array([total_iter]), Y = np.array([loss]), win = graph_pretrain_discriminator, update = update, opts=dict(title="pretrain discriminator training curve"))
     
     
     # Adversarial Training 
