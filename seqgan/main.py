@@ -316,7 +316,7 @@ if __name__ == "__main__":
         dis_criterion = dis_criterion.cuda()
     total_iter = 0
     print ("Pretrain Discriminator ...")
-    for epoch in range(PRE_EPOCH_NUM/10):
+    for epoch in range(2):
         generated_samples, exp_samples = generate_samples(generator, BATCH_SIZE, train_states.shape[0], train_states)
         dis_data_iter = DisDataIter(train_states, generated_samples, BATCH_SIZE)
         for _ in range(10):
