@@ -364,7 +364,7 @@ if __name__ == "__main__":
 
             samples, targets = generator.sample(BATCH_SIZE, g_sequence_len, starts)
             # calculate the reward
-            rewards = rollout.get_reward(samples, 1, discriminator)
+            rewards = rollout.get_reward(samples, 16, discriminator)
             print("ave_rewards = {}".format(np.mean(rewards)))
             ave_rewards.append(np.mean(rewards))
 
