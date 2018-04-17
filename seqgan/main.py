@@ -40,7 +40,18 @@ graph_adversarial_training = None
 graph_adversarial_training_discriminator = None
 graph_pretrain_generator_validation = None
 graph_pretrain_discriminator_validation = None
-experiment_num = 11
+graph_discriminator_classification = None
+
+# ----------------new graphs--------------------
+ave_rewards = []
+graph_ave_rewards = None
+exp_ave = []
+generator_ave = []
+graph_probabilities = None
+
+
+#--------------------------------------------
+experiment_num = 12
 
 same_start_set = True
 
@@ -276,7 +287,7 @@ if __name__ == "__main__":
     print ("Starting to load to data")
     # Geneating data with target lstm
     target_lstm = Target_LSTM(g_state_dim, g_hidden_dim, g_action_dim, opt.cuda, num_layers=1).double()
-    # generate random starts
+
     train_states, train_actions = target_lstm_generate_samples(target_lstm, BATCH_SIZE, GENERATED_NUM)
     
     print ("Done loading data")
@@ -316,10 +327,10 @@ if __name__ == "__main__":
         dis_criterion = dis_criterion.cuda()
     total_iter = 0
     print ("Pretrain Discriminator ...")
-    for epoch in range(4):
+    for epoch in range(1):
         generated_samples, exp_samples = generate_samples(generator, BATCH_SIZE, train_states.shape[0], train_states)
         dis_data_iter = DisDataIter(train_states, generated_samples, BATCH_SIZE)
-        for _ in range(5):
+        for _ in range(1):
             loss = train_epoch(discriminator, dis_data_iter, dis_criterion, dis_optimizer, generator=False)
             print('Epoch [%d], Iter[%d] loss: %f' % (epoch, _, loss))
             update = None if graph_pretrain_discriminator is None else 'append'
@@ -353,9 +364,15 @@ if __name__ == "__main__":
 
             samples, targets = generator.sample(BATCH_SIZE, g_sequence_len, starts)
             # calculate the reward
-            rewards = rollout.get_reward(samples, 16, discriminator)
+            rewards = rollout.get_reward(samples, 1, discriminator)
             print("ave_rewards = {}".format(np.mean(rewards)))
+            ave_rewards.append(np.mean(rewards))
+
+
+            update = None if graph_ave_rewards is None else 'append'
+            graph_ave_rewards = vis.line(X = np.array([len(ave_rewards)-1]), Y = np.array([ave_rewards[-1]]), win = graph_ave_rewards, update = update, opts=dict(title="training average rewards"))
             rewards = Variable(torch.Tensor(rewards)).contiguous().view((-1,))
+
             if opt.cuda:
                 rewards = torch.exp(rewards.cuda()).contiguous().view((-1,))
 
@@ -363,7 +380,7 @@ if __name__ == "__main__":
             loss = gen_gan_loss(prob, rewards)
 
             update = None if graph_adversarial_training is None else 'append'
-            graph_adversarial_training = vis.line(X = np.array([total_batch]), Y = np.array([-loss.data[0]]), win = graph_adversarial_training, update = update, opts=dict(title="adversarial training loss"))
+            graph_adversarial_training = vis.line(X = np.array([total_batch]), Y = np.array([loss.data[0]]), win = graph_adversarial_training, update = update, opts=dict(title="adversarial training loss"))
 
             print ("adversial training loss - generator[%d]: %f" % (total_batch, loss))
             gen_gan_optm.zero_grad()
@@ -372,16 +389,25 @@ if __name__ == "__main__":
 
         rollout.update_params()
         
-        for _ in range(1):
+        for _ in range(3):
             generated_samples, exp_samples = generate_samples(generator, BATCH_SIZE, train_states.shape[0], train_states)
             dis_data_iter = DisDataIter(train_states, generated_samples, BATCH_SIZE)
             for _ in range(1):
+                expert_probabilites = discriminator(Variable(torch.from_numpy(exp_samples))).cpu().data.mean()
+                generator_probabilites = discriminator(Variable(torch.from_numpy(generated_samples))).cpu().data.mean()
+                exp_ave.append(expert_probabilites)
+                generator_ave.append(generator_probabilites)
                 loss = train_epoch(discriminator, dis_data_iter, dis_criterion, dis_optimizer, generator=False)
                 total_iter += 1
                 print ("adversial training loss - discriminator [%d]: %f" % (total_batch, loss))
+                
                 update = None if graph_adversarial_training_discriminator is None else 'append'
                 graph_adversarial_training_discriminator = vis.line(X = np.array([total_iter]), Y = np.array([loss]), win = graph_adversarial_training_discriminator, update = update, opts=dict(title="adversarial discriminator training loss"))
                 
+        update = None if graph_probabilities is None else 'append'
+        graph_probabilities = vis.line(X = np.array([len(ave_rewards)-1]), Y = np.column_stack((np.array([exp_ave[-1]]), np.array([generator_ave[-1]]))), win = graph_probabilities, \
+          update = update, opts=dict(legend=['expert_prob', 'model_prob'], title="discriminator prob classifications"))
+
         if total_batch % VAL_FREQ == 0:
             mod_samples, exp_samples = generate_samples(generator, 1, 1, train_states)
             draw_samples(mod_samples, show_image=False, save_image=True, name="GAN_generated_" + str(total_batch))
