@@ -51,7 +51,7 @@ graph_probabilities = None
 
 
 #--------------------------------------------
-experiment_num = 14
+experiment_num = 15
 
 same_start_set = True
 
@@ -327,15 +327,15 @@ if __name__ == "__main__":
         dis_criterion = dis_criterion.cuda()
     total_iter = 0
     print ("Pretrain Discriminator ...")
-    # for epoch in range(4):
-    #     generated_samples, exp_samples = generate_samples(generator, BATCH_SIZE, train_states.shape[0], train_states)
-    #     dis_data_iter = DisDataIter(train_states, generated_samples, BATCH_SIZE)
-    #     for _ in range(5):
-    #         loss = train_epoch(discriminator, dis_data_iter, dis_criterion, dis_optimizer, generator=False)
-    #         print('Epoch [%d], Iter[%d] loss: %f' % (epoch, _, loss))
-    #         update = None if graph_pretrain_discriminator is None else 'append'
-    #         graph_pretrain_discriminator = vis.line(X = np.array([total_iter]), Y = np.array([loss]), win = graph_pretrain_discriminator, update = update, opts=dict(title="pretrain discriminator training curve"))
-    #         total_iter += 1
+    for epoch in range(4):
+        generated_samples, exp_samples = generate_samples(generator, BATCH_SIZE, train_states.shape[0], train_states)
+        dis_data_iter = DisDataIter(train_states, generated_samples, BATCH_SIZE)
+        for _ in range(5):
+            loss = train_epoch(discriminator, dis_data_iter, dis_criterion, dis_optimizer, generator=False)
+            print('Epoch [%d], Iter[%d] loss: %f' % (epoch, _, loss))
+            update = None if graph_pretrain_discriminator is None else 'append'
+            graph_pretrain_discriminator = vis.line(X = np.array([total_iter]), Y = np.array([loss]), win = graph_pretrain_discriminator, update = update, opts=dict(title="pretrain discriminator training curve"))
+            total_iter += 1
     
     # Adversarial Training 
     rollout = Rollout(generator, 0.8)
@@ -387,9 +387,9 @@ if __name__ == "__main__":
             total_iter_gen += 1
 
             print ("adversial training loss - generator[%d]: %f" % (total_batch, loss))
-            gen_gan_optm.zero_grad()
-            loss.backward()
-            gen_gan_optm.step()
+            # gen_gan_optm.zero_grad()
+            # loss.backward()
+            # gen_gan_optm.step()
 
         rollout.update_params()
         expert_probabilites = 0.0
@@ -404,12 +404,12 @@ if __name__ == "__main__":
                 print ("model prob: %f" % generator_probabilites) 
                 print (total_iter_temp)
 
-                # loss = train_epoch(discriminator, dis_data_iter, dis_criterion, dis_optimizer, generator=False)
-                # total_iter += 1
-                # print ("adversial training loss - discriminator [%d]: %f" % (total_batch, loss))
+                loss = train_epoch(discriminator, dis_data_iter, dis_criterion, dis_optimizer, generator=False)
+                total_iter += 1
+                print ("adversial training loss - discriminator [%d]: %f" % (total_batch, loss))
                 
-                # update = None if graph_adversarial_training_discriminator is None else 'append'
-                # graph_adversarial_training_discriminator = vis.line(X = np.array([total_iter]), Y = np.array([loss]), win = graph_adversarial_training_discriminator, update = update, opts=dict(title="adversarial discriminator training loss"))
+                update = None if graph_adversarial_training_discriminator is None else 'append'
+                graph_adversarial_training_discriminator = vis.line(X = np.array([total_iter]), Y = np.array([loss]), win = graph_adversarial_training_discriminator, update = update, opts=dict(title="adversarial discriminator training loss"))
                 
                 update = None if graph_probabilities is None else 'append'
                 graph_probabilities = vis.line(X = np.array([total_iter_temp]), Y = np.column_stack((np.array([generator_probabilites]),np.array([expert_probabilites]))), win = graph_probabilities, \
