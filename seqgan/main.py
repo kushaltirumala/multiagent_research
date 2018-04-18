@@ -353,6 +353,8 @@ if __name__ == "__main__":
     if opt.cuda:
         dis_criterion = dis_criterion.cuda()
     total_iter = 0
+    total_iter_temp = 0
+    total_iter_gen = 0
     for total_batch in range(TOTAL_BATCH):
         ## Train the generator for one step
         for it in range(3):
@@ -380,7 +382,9 @@ if __name__ == "__main__":
             loss = gen_gan_loss(prob, rewards)
 
             update = None if graph_adversarial_training is None else 'append'
-            graph_adversarial_training = vis.line(X = np.array([total_batch]), Y = np.array([loss.data[0]]), win = graph_adversarial_training, update = update, opts=dict(title="adversarial training loss"))
+            graph_adversarial_training = vis.line(X = np.array([total_iter_gen]), Y = np.array([loss.data[0]]), win = graph_adversarial_training, update = update, opts=dict(title="adversarial training loss"))
+
+            total_iter_gen += 1
 
             print ("adversial training loss - generator[%d]: %f" % (total_batch, loss))
             gen_gan_optm.zero_grad()
@@ -388,15 +392,18 @@ if __name__ == "__main__":
             gen_gan_optm.step()
 
         rollout.update_params()
-        
+        expert_probabilites = 0.0
+        generator_probabilites = 0.0
         for _ in range(3):
             generated_samples, exp_samples = generate_samples(generator, BATCH_SIZE, train_states.shape[0], train_states)
             dis_data_iter = DisDataIter(train_states, generated_samples, BATCH_SIZE)
             for _ in range(1):
-                expert_probabilites = discriminator(Variable(torch.from_numpy(exp_samples))).cpu().data.mean()
-                generator_probabilites = discriminator(Variable(torch.from_numpy(generated_samples))).cpu().data.mean()
-                exp_ave.append(expert_probabilites)
-                generator_ave.append(generator_probabilites)
+                expert_probabilites = discriminator(Variable(torch.from_numpy(exp_samples)))[:, 0].cpu().data.mean()
+                generator_probabilites = discriminator(Variable(torch.from_numpy(generated_samples)))[:, 0].cpu().data.mean()
+                print ("expert prob: %f" % expert_probabilites) 
+                print ("model prob: %f" % generator_probabilites) 
+                print (total_iter_temp)
+
                 loss = train_epoch(discriminator, dis_data_iter, dis_criterion, dis_optimizer, generator=False)
                 total_iter += 1
                 print ("adversial training loss - discriminator [%d]: %f" % (total_batch, loss))
@@ -404,9 +411,12 @@ if __name__ == "__main__":
                 update = None if graph_adversarial_training_discriminator is None else 'append'
                 graph_adversarial_training_discriminator = vis.line(X = np.array([total_iter]), Y = np.array([loss]), win = graph_adversarial_training_discriminator, update = update, opts=dict(title="adversarial discriminator training loss"))
                 
-        update = None if graph_probabilities is None else 'append'
-        graph_probabilities = vis.line(X = np.array([len(ave_rewards)-1]), Y = np.column_stack((np.array([exp_ave[-1]]), np.array([generator_ave[-1]]))), win = graph_probabilities, \
-          update = update, opts=dict(legend=['expert_prob', 'model_prob'], title="discriminator prob classifications"))
+                update = None if graph_probabilities is None else 'append'
+                graph_probabilities = vis.line(X = np.array([total_iter_temp]), Y = np.column_stack((np.array([generator_probabilites]),np.array([expert_probabilites]))), win = graph_probabilities, \
+                  update = update, opts=dict(legend=['expert_prob', 'model_prob'], title="discriminator prob: model"))
+
+                total_iter_temp += 1
+
 
         if total_batch % VAL_FREQ == 0:
             mod_samples, exp_samples = generate_samples(generator, 1, 1, train_states)
