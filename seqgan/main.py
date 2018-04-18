@@ -51,7 +51,7 @@ graph_probabilities = None
 
 
 #--------------------------------------------
-experiment_num = 12
+experiment_num = 13
 
 same_start_set = True
 
@@ -59,7 +59,7 @@ same_start_set = True
 # Basic Training Paramters
 SEED = 88
 BATCH_SIZE = 32 
-TOTAL_BATCH = 100
+TOTAL_BATCH = 20
 GENERATED_NUM = 96
 VOCAB_SIZE = 22
 PRE_EPOCH_NUM = 20
@@ -404,12 +404,12 @@ if __name__ == "__main__":
                 print ("model prob: %f" % generator_probabilites) 
                 print (total_iter_temp)
 
-                loss = train_epoch(discriminator, dis_data_iter, dis_criterion, dis_optimizer, generator=False)
-                total_iter += 1
-                print ("adversial training loss - discriminator [%d]: %f" % (total_batch, loss))
+                # loss = train_epoch(discriminator, dis_data_iter, dis_criterion, dis_optimizer, generator=False)
+                # total_iter += 1
+                # print ("adversial training loss - discriminator [%d]: %f" % (total_batch, loss))
                 
-                update = None if graph_adversarial_training_discriminator is None else 'append'
-                graph_adversarial_training_discriminator = vis.line(X = np.array([total_iter]), Y = np.array([loss]), win = graph_adversarial_training_discriminator, update = update, opts=dict(title="adversarial discriminator training loss"))
+                # update = None if graph_adversarial_training_discriminator is None else 'append'
+                # graph_adversarial_training_discriminator = vis.line(X = np.array([total_iter]), Y = np.array([loss]), win = graph_adversarial_training_discriminator, update = update, opts=dict(title="adversarial discriminator training loss"))
                 
                 update = None if graph_probabilities is None else 'append'
                 graph_probabilities = vis.line(X = np.array([total_iter_temp]), Y = np.column_stack((np.array([generator_probabilites]),np.array([expert_probabilites]))), win = graph_probabilities, \
