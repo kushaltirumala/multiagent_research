@@ -39,7 +39,15 @@ graph_adversarial_training = None
 graph_adversarial_training_discriminator = None
 graph_pretrain_generator_validation = None
 graph_pretrain_discriminator_validation = None
-experiment_num = 10
+
+# ----------------new graphs--------------------
+ave_rewards = []
+graph_ave_rewards = None
+exp_ave = []
+generator_ave = []
+graph_probabilities = None
+
+experiment_num = 11
 
 same_start_set = True
 
@@ -47,10 +55,10 @@ same_start_set = True
 # Basic Training Paramters
 SEED = 88
 BATCH_SIZE = 32 
-TOTAL_BATCH = 10
+TOTAL_BATCH = 100
 GENERATED_NUM = 96
 VOCAB_SIZE = 22
-PRE_EPOCH_NUM = 10
+PRE_EPOCH_NUM = 20
 VAL_FREQ = 3
 
 '''
@@ -263,7 +271,7 @@ def load_expert_data(num):
 if __name__ == "__main__":
     print ("Starting to load to data")
     train_states, train_actions, val_states, val_actions, exp_ave_stepsize, exp_std_stepsize, exp_ave_length, exp_ave_near_bound \
-        = load_expert_data(40000)
+        = load_expert_data(1000)
     print ("Done loading data")
     random.seed(SEED)
     np.random.seed(SEED)
@@ -286,7 +294,7 @@ if __name__ == "__main__":
 
     # Pretrain Generator using MLE
     gen_criterion = nn.BCELoss(size_average=False)
-    gen_optimizer = optim.Adam(generator.parameters(), lr=0.01)
+    gen_optimizer = optim.Adam(generator.parameters(), lr=0.001)
     if opt.cuda:
         gen_criterion = gen_criterion.cuda()
     print('Pretrain with log probs ...')
@@ -307,7 +315,7 @@ if __name__ == "__main__":
 
     # Pretrain Discriminator
     dis_criterion = nn.BCELoss(size_average=True)
-    dis_optimizer = optim.Adam(discriminator.parameters(), lr=0.0005)
+    dis_optimizer = optim.Adam(discriminator.parameters(), lr=0.000001)
     if opt.cuda:
         dis_criterion = dis_criterion.cuda()
     print ("Pretrain Discriminator ...")
@@ -366,10 +374,12 @@ if __name__ == "__main__":
     if opt.cuda:
         gen_criterion = gen_criterion.cuda()
     dis_criterion = nn.BCELoss(size_average=True)
-    dis_optimizer = optim.Adam(discriminator.parameters(), lr = 0.00005)
+    dis_optimizer = optim.Adam(discriminator.parameters(), lr = 0.000001)
     if opt.cuda:
         dis_criterion = dis_criterion.cuda()
     total_iter = 0
+    total_iter_temp = 0
+    total_iter_gen = 0
     for total_batch in range(TOTAL_BATCH):
         ## Train the generator for one step
         for it in range(3):
@@ -383,6 +393,9 @@ if __name__ == "__main__":
             # calculate the reward
             rewards = rollout.get_reward(samples, 16, discriminator)
             print("ave_rewards = {}".format(np.mean(rewards)))
+            ave_rewards.append(np.mean(rewards))
+            update = None if graph_ave_rewards is None else 'append'
+            graph_ave_rewards = vis.line(X = np.array([len(ave_rewards)-1]), Y = np.array([ave_rewards[-1]]), win = graph_ave_rewards, update = update, opts=dict(title="training average rewards"))
             rewards = Variable(torch.Tensor(rewards)).contiguous().view((-1,))
             if opt.cuda:
                 rewards = torch.exp(rewards.cuda()).contiguous().view((-1,))
@@ -391,7 +404,9 @@ if __name__ == "__main__":
             loss = gen_gan_loss(prob, rewards)
 
             update = None if graph_adversarial_training is None else 'append'
-            graph_adversarial_training = vis.line(X = np.array([total_batch]), Y = np.array([-loss.data[0]]), win = graph_adversarial_training, update = update, opts=dict(title="adversarial training loss"))
+            graph_adversarial_training = vis.line(X = np.array([total_iter_gen]), Y = np.array([loss.data[0]]), win = graph_adversarial_training, update = update, opts=dict(title="adversarial training loss"))
+
+            total_iter_gen += 1
 
             print ("adversial training loss - generator[%d]: %f" % (total_batch, loss))
             gen_gan_optm.zero_grad()
@@ -400,15 +415,27 @@ if __name__ == "__main__":
 
         rollout.update_params()
         
-        for _ in range(1):
+        for _ in range(2):
             generated_samples, exp_samples = generate_samples(generator, BATCH_SIZE, train_states.shape[0], train_states)
             dis_data_iter = DisDataIter(train_states, generated_samples, BATCH_SIZE)
             for _ in range(1):
+                expert_probabilites = discriminator(Variable(torch.from_numpy(exp_samples)))[:, 0].cpu().data.mean()
+                generator_probabilites = discriminator(Variable(torch.from_numpy(generated_samples)))[:, 0].cpu().data.mean()
+                print ("expert prob: %f" % expert_probabilites) 
+                print ("model prob: %f" % generator_probabilites) 
+                print (total_iter_temp)
+
                 loss = train_epoch(discriminator, dis_data_iter, dis_criterion, dis_optimizer, generator=False)
                 total_iter += 1
                 print ("adversial training loss - discriminator [%d]: %f" % (total_batch, loss))
                 update = None if graph_adversarial_training_discriminator is None else 'append'
                 graph_adversarial_training_discriminator = vis.line(X = np.array([total_iter]), Y = np.array([loss]), win = graph_adversarial_training_discriminator, update = update, opts=dict(title="adversarial discriminator training loss"))
+                
+                update = None if graph_probabilities is None else 'append'
+                graph_probabilities = vis.line(X = np.array([total_iter_temp]), Y = np.column_stack((np.array([generator_probabilites]),np.array([expert_probabilites]))), win = graph_probabilities, \
+                  update = update, opts=dict(legend=['expert_prob', 'model_prob'], title="discriminator prob: model"))
+
+                total_iter_temp += 1
                 
         if total_batch % VAL_FREQ == 0:
             mod_samples, exp_samples = generate_samples(generator, 1, 1, train_states)
