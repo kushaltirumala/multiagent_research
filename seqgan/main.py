@@ -47,7 +47,7 @@ exp_ave = []
 generator_ave = []
 graph_probabilities = None
 
-experiment_num = 11
+experiment_num = 12
 
 same_start_set = True
 
@@ -58,7 +58,7 @@ BATCH_SIZE = 32
 TOTAL_BATCH = 100
 GENERATED_NUM = 96
 VOCAB_SIZE = 22
-PRE_EPOCH_NUM = 20
+PRE_EPOCH_NUM = 50
 VAL_FREQ = 3
 
 '''
@@ -294,7 +294,7 @@ if __name__ == "__main__":
 
     # Pretrain Generator using MLE
     gen_criterion = nn.BCELoss(size_average=False)
-    gen_optimizer = optim.Adam(generator.parameters(), lr=0.001)
+    gen_optimizer = optim.Adam(generator.parameters(), lr=0.01)
     if opt.cuda:
         gen_criterion = gen_criterion.cuda()
     print('Pretrain with log probs ...')
@@ -315,7 +315,7 @@ if __name__ == "__main__":
 
     # Pretrain Discriminator
     dis_criterion = nn.BCELoss(size_average=True)
-    dis_optimizer = optim.Adam(discriminator.parameters(), lr=0.000001)
+    dis_optimizer = optim.Adam(discriminator.parameters(), lr=0.00005)
     if opt.cuda:
         dis_criterion = dis_criterion.cuda()
     print ("Pretrain Discriminator ...")
@@ -374,7 +374,7 @@ if __name__ == "__main__":
     if opt.cuda:
         gen_criterion = gen_criterion.cuda()
     dis_criterion = nn.BCELoss(size_average=True)
-    dis_optimizer = optim.Adam(discriminator.parameters(), lr = 0.000001)
+    dis_optimizer = optim.Adam(discriminator.parameters(), lr = 0.00005)
     if opt.cuda:
         dis_criterion = dis_criterion.cuda()
     total_iter = 0
@@ -415,7 +415,7 @@ if __name__ == "__main__":
 
         rollout.update_params()
         
-        for _ in range(2):
+        for _ in range(1):
             generated_samples, exp_samples = generate_samples(generator, BATCH_SIZE, train_states.shape[0], train_states)
             dis_data_iter = DisDataIter(train_states, generated_samples, BATCH_SIZE)
             for _ in range(1):
