@@ -1,0 +1,503 @@
+Namespace(cuda=None, file=None)
+Starting to load to data
+(511, 69, 22)
+[0.01820614 0.02110265 0.01071149 0.00955178 0.01042169 0.00896296
+ 0.01034421 0.00905884 0.01040014 0.00921057 0.01063313 0.00939161
+ 0.0089896  0.00881934 0.00880602 0.0086075  0.00884926 0.00867091
+ 0.00880816 0.00890206 0.00889984 0.00894445] [0.02944871 0.0352802  0.01451085 0.01412412 0.0141481  0.01366154
+ 0.01424385 0.01381535 0.0141338  0.01396114 0.0145058  0.01406622
+ 0.01230757 0.01262122 0.01211383 0.01227144 0.01214756 0.01233849
+ 0.01217917 0.01270673 0.01218342 0.01284692] [2.1643685  1.12245616 1.07802673 1.08249491 1.09120619 1.11325288
+ 0.98006362 0.95841186 0.96537168 0.9783302  0.98340739] [0.00198531 0.07453416 0.00524689 0.08318444 0.00606937 0.10176125
+ 0.00456621 0.10842622 0.0051618  0.09441561 0.00558723 0.09081369
+ 0.00354519 0.0238237  0.0040557  0.0233132  0.00229729 0.02376698
+ 0.00212712 0.01965456 0.0018435  0.02932585]
+train_data.shape: (511, 69, 22) val_data.shape: (128, 69, 22)
+Done loading data
+Pretrain with log probs ...
+Epoch [0] Model Validation Loss: 20.219620
+Epoch [0] Model Loss: 20.054517
+Epoch [1] Model Loss: 19.702517
+Epoch [2] Model Loss: 19.350587
+Epoch [3] Model Validation Loss: 19.163671
+Epoch [3] Model Loss: 18.998615
+Epoch [4] Model Loss: 18.646684
+Epoch [5] Model Loss: 18.294741
+Epoch [6] Model Validation Loss: 18.107861
+Epoch [6] Model Loss: 17.942810
+Epoch [7] Model Loss: 17.590907
+Epoch [8] Model Loss: 17.239008
+Epoch [9] Model Validation Loss: 17.052140
+Epoch [9] Model Loss: 16.887090
+Epoch [10] Model Loss: 16.535190
+Epoch [11] Model Loss: 16.183289
+Epoch [12] Model Validation Loss: 15.996453
+Epoch [12] Model Loss: 15.831416
+Epoch [13] Model Loss: 15.479527
+Epoch [14] Model Loss: 15.127636
+Epoch [15] Model Validation Loss: 14.940833
+Epoch [15] Model Loss: 14.775769
+Epoch [16] Model Loss: 14.423880
+Epoch [17] Model Loss: 14.071979
+Epoch [18] Model Validation Loss: 13.885179
+Epoch [18] Model Loss: 13.720068
+Epoch [19] Model Loss: 13.368094
+Pretrain Discriminator ...
+Epoch [0], Iter[0] Validation loss: 0.718077
+Epoch [0], Iter[0] loss: 0.704060
+Epoch [0], Iter[1] loss: 0.703459
+Epoch [1], Iter[0] loss: 0.704101
+Epoch [1], Iter[1] Validation loss: 0.716654
+Epoch [1], Iter[1] loss: 0.703474
+Epoch [2], Iter[0] loss: 0.703890
+Epoch [2], Iter[1] loss: 0.703416
+Epoch [3], Iter[0] Validation loss: 0.711235
+Epoch [3], Iter[0] loss: 0.698737
+Epoch [3], Iter[1] loss: 0.698122
+Saving Model
+Drawing
+Drawing
+post pretraining stats: generator validation loss is 13.181271172234144, discriminator validation loss is 0.6902184648791739
+#####################################################
+Start Adversarial Training...
+
+ave_rewards = 0.5170529986098632
+adversial training loss - generator[0]: 12.461281
+ave_rewards = 0.507839114788742
+adversial training loss - generator[0]: 12.232582
+ave_rewards = 0.4974268124728692
+adversial training loss - generator[0]: 11.977108
+expert prob: 0.492699
+model prob: 0.491913
+0
+adversial training loss - discriminator [0]: 0.699469
+expert prob: 0.492428
+model prob: 0.493685
+1
+adversial training loss - discriminator [0]: 0.697453
+Drawing
+Drawing
+ave_rewards = 0.4964685029120684
+adversial training loss - generator[1]: 11.991470
+ave_rewards = 0.49846923340068516
+adversial training loss - generator[1]: 12.043518
+ave_rewards = 0.5001497229356445
+adversial training loss - generator[1]: 12.092555
+expert prob: 0.492454
+model prob: 0.503102
+2
+adversial training loss - discriminator [1]: 0.688563
+expert prob: 0.492273
+model prob: 0.503866
+3
+adversial training loss - discriminator [1]: 0.686933
+ave_rewards = 0.5004891241745053
+adversial training loss - generator[2]: 12.133642
+ave_rewards = 0.4926246801240645
+adversial training loss - generator[2]: 11.994055
+ave_rewards = 0.4844283572840593
+adversial training loss - generator[2]: 11.744311
+expert prob: 0.492309
+model prob: 0.510991
+4
+adversial training loss - discriminator [2]: 0.679383
+expert prob: 0.491742
+model prob: 0.512036
+5
+adversial training loss - discriminator [2]: 0.678936
+ave_rewards = 0.48568066564097806
+adversial training loss - generator[3]: 11.746319
+ave_rewards = 0.49762690695707384
+adversial training loss - generator[3]: 12.010888
+ave_rewards = 0.48456963918542245
+adversial training loss - generator[3]: 11.678066
+expert prob: 0.491539
+model prob: 0.517782
+6
+adversial training loss - discriminator [3]: 0.671914
+expert prob: 0.491207
+model prob: 0.525266
+7
+adversial training loss - discriminator [3]: 0.665205
+Drawing
+Drawing
+ave_rewards = 0.4791745438017089
+adversial training loss - generator[4]: 11.622191
+ave_rewards = 0.4766794252592004
+adversial training loss - generator[4]: 11.487732
+ave_rewards = 0.47791270174113304
+adversial training loss - generator[4]: 11.532687
+expert prob: 0.491104
+model prob: 0.528825
+8
+adversial training loss - discriminator [4]: 0.661559
+expert prob: 0.490739
+model prob: 0.533445
+9
+adversial training loss - discriminator [4]: 0.656845
+ave_rewards = 0.48329349727223814
+adversial training loss - generator[5]: 11.666550
+ave_rewards = 0.4675945636607567
+adversial training loss - generator[5]: 11.304543
+ave_rewards = 0.47249031235134675
+adversial training loss - generator[5]: 11.397807
+expert prob: 0.490523
+model prob: 0.526543
+10
+adversial training loss - discriminator [5]: 0.662714
+expert prob: 0.490280
+model prob: 0.536115
+11
+adversial training loss - discriminator [5]: 0.653944
+ave_rewards = 0.45081078490090604
+adversial training loss - generator[6]: 10.884564
+ave_rewards = 0.4500560114309493
+adversial training loss - generator[6]: 10.869755
+ave_rewards = 0.45787934039840095
+adversial training loss - generator[6]: 11.074525
+expert prob: 0.489984
+model prob: 0.537030
+12
+adversial training loss - discriminator [6]: 0.652660
+expert prob: 0.489908
+model prob: 0.541651
+13
+adversial training loss - discriminator [6]: 0.648165
+Drawing
+Drawing
+ave_rewards = 0.4623764896011817
+adversial training loss - generator[7]: 11.160098
+ave_rewards = 0.4438902207122251
+adversial training loss - generator[7]: 10.709832
+ave_rewards = 0.4526244625500439
+adversial training loss - generator[7]: 10.911697
+expert prob: 0.489381
+model prob: 0.546445
+14
+adversial training loss - discriminator [7]: 0.643855
+expert prob: 0.490108
+model prob: 0.553556
+15
+adversial training loss - discriminator [7]: 0.637555
+ave_rewards = 0.4409179380409659
+adversial training loss - generator[8]: 10.681616
+ave_rewards = 0.4365335490538881
+adversial training loss - generator[8]: 10.544161
+ave_rewards = 0.4423590153112985
+adversial training loss - generator[8]: 10.704592
+expert prob: 0.490003
+model prob: 0.549978
+16
+adversial training loss - discriminator [8]: 0.642140
+expert prob: 0.489184
+model prob: 0.558002
+17
+adversial training loss - discriminator [8]: 0.633115
+ave_rewards = 0.41924267263338033
+adversial training loss - generator[9]: 10.084710
+ave_rewards = 0.4559997669891533
+adversial training loss - generator[9]: 11.034336
+ave_rewards = 0.4448756493346789
+adversial training loss - generator[9]: 10.714135
+expert prob: 0.488770
+model prob: 0.557883
+18
+adversial training loss - discriminator [9]: 0.634510
+expert prob: 0.488620
+model prob: 0.561056
+19
+adversial training loss - discriminator [9]: 0.631442
+Drawing
+Drawing
+ave_rewards = 0.44989403743668416
+adversial training loss - generator[10]: 10.914686
+ave_rewards = 0.453764575808564
+adversial training loss - generator[10]: 11.013517
+ave_rewards = 0.43122615027792716
+adversial training loss - generator[10]: 10.462039
+expert prob: 0.488223
+model prob: 0.551198
+20
+adversial training loss - discriminator [10]: 0.640178
+expert prob: 0.488100
+model prob: 0.556818
+21
+adversial training loss - discriminator [10]: 0.634955
+ave_rewards = 0.4490401553457199
+adversial training loss - generator[11]: 10.889794
+ave_rewards = 0.4493792334933334
+adversial training loss - generator[11]: 10.824563
+ave_rewards = 0.4451560156250981
+adversial training loss - generator[11]: 10.741690
+expert prob: 0.487229
+model prob: 0.553194
+22
+adversial training loss - discriminator [11]: 0.637671
+expert prob: 0.486998
+model prob: 0.545560
+23
+adversial training loss - discriminator [11]: 0.643964
+ave_rewards = 0.440664450071569
+adversial training loss - generator[12]: 10.638566
+ave_rewards = 0.4434030381182971
+adversial training loss - generator[12]: 10.695797
+ave_rewards = 0.4482305986506644
+adversial training loss - generator[12]: 10.851820
+expert prob: 0.486446
+model prob: 0.561165
+24
+adversial training loss - discriminator [12]: 0.628950
+expert prob: 0.485814
+model prob: 0.551973
+25
+adversial training loss - discriminator [12]: 0.636237
+Drawing
+Drawing
+ave_rewards = 0.4473672879518475
+adversial training loss - generator[13]: 10.845182
+ave_rewards = 0.44550773885195477
+adversial training loss - generator[13]: 10.759920
+ave_rewards = 0.4345581781334748
+adversial training loss - generator[13]: 10.480556
+expert prob: 0.485337
+model prob: 0.559411
+26
+adversial training loss - discriminator [13]: 0.629600
+expert prob: 0.484304
+model prob: 0.565428
+27
+adversial training loss - discriminator [13]: 0.622857
+ave_rewards = 0.43998207300350123
+adversial training loss - generator[14]: 10.673112
+ave_rewards = 0.44675679591110895
+adversial training loss - generator[14]: 10.759589
+ave_rewards = 0.4392666562115536
+adversial training loss - generator[14]: 10.612434
+expert prob: 0.484031
+model prob: 0.562128
+28
+adversial training loss - discriminator [14]: 0.626555
+expert prob: 0.483368
+model prob: 0.568528
+29
+adversial training loss - discriminator [14]: 0.619934
+ave_rewards = 0.42014503636090644
+adversial training loss - generator[15]: 10.137997
+ave_rewards = 0.45120675557330875
+adversial training loss - generator[15]: 10.863227
+ave_rewards = 0.43321886544381766
+adversial training loss - generator[15]: 10.454165
+expert prob: 0.483347
+model prob: 0.553155
+30
+adversial training loss - discriminator [15]: 0.633864
+expert prob: 0.482272
+model prob: 0.553160
+31
+adversial training loss - discriminator [15]: 0.632776
+Drawing
+Drawing
+ave_rewards = 0.44578020435439986
+adversial training loss - generator[16]: 10.807553
+ave_rewards = 0.44648624175286933
+adversial training loss - generator[16]: 10.784930
+ave_rewards = 0.44477912173682893
+adversial training loss - generator[16]: 10.769989
+expert prob: 0.481643
+model prob: 0.564988
+32
+adversial training loss - discriminator [16]: 0.622595
+expert prob: 0.481621
+model prob: 0.567310
+33
+adversial training loss - discriminator [16]: 0.618313
+ave_rewards = 0.43787775233695647
+adversial training loss - generator[17]: 10.660486
+ave_rewards = 0.43705368439233877
+adversial training loss - generator[17]: 10.583276
+ave_rewards = 0.4222256355671232
+adversial training loss - generator[17]: 10.218674
+expert prob: 0.480038
+model prob: 0.569510
+34
+adversial training loss - discriminator [17]: 0.616008
+expert prob: 0.478716
+model prob: 0.570781
+35
+adversial training loss - discriminator [17]: 0.614412
+ave_rewards = 0.4398913968572641
+adversial training loss - generator[18]: 10.656949
+ave_rewards = 0.43048642471817944
+adversial training loss - generator[18]: 10.422634
+ave_rewards = 0.43978124582136374
+adversial training loss - generator[18]: 10.660188
+expert prob: 0.477776
+model prob: 0.575566
+36
+adversial training loss - discriminator [18]: 0.607675
+expert prob: 0.477402
+model prob: 0.573399
+37
+adversial training loss - discriminator [18]: 0.609186
+Drawing
+Drawing
+ave_rewards = 0.4289400070404067
+adversial training loss - generator[19]: 10.383393
+ave_rewards = 0.43113104876679603
+adversial training loss - generator[19]: 10.428754
+ave_rewards = 0.43886926171583496
+adversial training loss - generator[19]: 10.620646
+expert prob: 0.476580
+model prob: 0.572901
+38
+adversial training loss - discriminator [19]: 0.607758
+expert prob: 0.475588
+model prob: 0.581705
+39
+adversial training loss - discriminator [19]: 0.599506
+ave_rewards = 0.4224203383510486
+adversial training loss - generator[20]: 10.272414
+ave_rewards = 0.4051014347500713
+adversial training loss - generator[20]: 9.785493
+ave_rewards = 0.39234379212889803
+adversial training loss - generator[20]: 9.466509
+expert prob: 0.474147
+model prob: 0.587128
+40
+adversial training loss - discriminator [20]: 0.594843
+expert prob: 0.473674
+model prob: 0.595621
+41
+adversial training loss - discriminator [20]: 0.586699
+ave_rewards = 0.41221991818893
+adversial training loss - generator[21]: 9.969785
+ave_rewards = 0.42530956476655357
+adversial training loss - generator[21]: 10.280992
+ave_rewards = 0.4192172565115246
+adversial training loss - generator[21]: 10.141418
+expert prob: 0.473176
+model prob: 0.589042
+42
+adversial training loss - discriminator [21]: 0.591585
+expert prob: 0.471999
+model prob: 0.594236
+43
+adversial training loss - discriminator [21]: 0.586764
+Drawing
+Drawing
+ave_rewards = 0.39699143934954595
+adversial training loss - generator[22]: 9.635984
+ave_rewards = 0.40451600584570446
+adversial training loss - generator[22]: 9.765613
+ave_rewards = 0.4085275493305689
+adversial training loss - generator[22]: 9.874365
+expert prob: 0.471194
+model prob: 0.589573
+44
+adversial training loss - discriminator [22]: 0.590747
+expert prob: 0.470983
+model prob: 0.599039
+45
+adversial training loss - discriminator [22]: 0.581749
+ave_rewards = 0.4271791883457552
+adversial training loss - generator[23]: 10.281166
+ave_rewards = 0.40579779844227704
+adversial training loss - generator[23]: 9.811022
+ave_rewards = 0.44060233210119826
+adversial training loss - generator[23]: 10.623163
+expert prob: 0.469710
+model prob: 0.580000
+46
+adversial training loss - discriminator [23]: 0.597727
+expert prob: 0.468686
+model prob: 0.588885
+47
+adversial training loss - discriminator [23]: 0.590058
+ave_rewards = 0.41565216707546426
+adversial training loss - generator[24]: 10.032066
+ave_rewards = 0.4035632299134528
+adversial training loss - generator[24]: 9.775669
+ave_rewards = 0.41011318908229427
+adversial training loss - generator[24]: 9.933089
+expert prob: 0.468250
+model prob: 0.588627
+48
+adversial training loss - discriminator [24]: 0.590430
+expert prob: 0.467807
+model prob: 0.580636
+49
+adversial training loss - discriminator [24]: 0.595761
+Drawing
+Drawing
+ave_rewards = 0.4233286900082242
+adversial training loss - generator[25]: 10.265537
+ave_rewards = 0.4154297293180363
+adversial training loss - generator[25]: 10.034858
+ave_rewards = 0.44946921375582977
+adversial training loss - generator[25]: 10.888086
+expert prob: 0.466645
+model prob: 0.568200
+50
+adversial training loss - discriminator [25]: 0.608149
+expert prob: 0.467005
+model prob: 0.585148
+51
+adversial training loss - discriminator [25]: 0.592748
+ave_rewards = 0.4202827494156178
+adversial training loss - generator[26]: 10.197294
+ave_rewards = 0.4789902209784429
+adversial training loss - generator[26]: 11.571190
+ave_rewards = 0.443912160241824
+adversial training loss - generator[26]: 10.750417
+expert prob: 0.466364
+model prob: 0.558986
+52
+adversial training loss - discriminator [26]: 0.615453
+expert prob: 0.466157
+model prob: 0.567994
+53
+adversial training loss - discriminator [26]: 0.608119
+ave_rewards = 0.46160751910236103
+adversial training loss - generator[27]: 11.150910
+ave_rewards = 0.44989311233292667
+adversial training loss - generator[27]: 10.834307
+ave_rewards = 0.4651896742513338
+adversial training loss - generator[27]: 11.248533
+expert prob: 0.465364
+model prob: 0.535933
+54
+adversial training loss - discriminator [27]: 0.638413
+expert prob: 0.465307
+model prob: 0.542842
+55
+adversial training loss - discriminator [27]: 0.631472
+Drawing
+Drawing
+ave_rewards = 0.4667914793103189
+adversial training loss - generator[28]: 11.263274
+ave_rewards = 0.45049161844425223
+adversial training loss - generator[28]: 10.931169
+ave_rewards = 0.46204503423831966
+adversial training loss - generator[28]: 11.207373
+expert prob: 0.464407
+model prob: 0.541982
+56
+adversial training loss - discriminator [28]: 0.634449
+expert prob: 0.464519
+model prob: 0.534408
+57
+adversial training loss - discriminator [28]: 0.640462
+ave_rewards = 0.4653025581317513
+adversial training loss - generator[29]: 11.211754
+ave_rewards = 0.46117512962119017
+adversial training loss - generator[29]: 11.129061
+ave_rewards = 0.4267738704857946
+adversial training loss - generator[29]: 10.383179
+expert prob: 0.464894
+model prob: 0.552396
+58
+adversial training loss - discriminator [29]: 0.623307
+expert prob: 0.464239
+model prob: 0.554224
+59
+adversial training loss - discriminator [29]: 0.622999
