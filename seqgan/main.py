@@ -47,7 +47,7 @@ exp_ave = []
 generator_ave = []
 graph_probabilities = None
 
-experiment_num = 12
+experiment_num = 13
 
 same_start_set = True
 
@@ -55,10 +55,10 @@ same_start_set = True
 # Basic Training Paramters
 SEED = 88
 BATCH_SIZE = 32 
-TOTAL_BATCH = 100
+TOTAL_BATCH = 25
 GENERATED_NUM = 96
 VOCAB_SIZE = 22
-PRE_EPOCH_NUM = 50
+PRE_EPOCH_NUM = 20
 VAL_FREQ = 3
 
 '''
@@ -314,28 +314,28 @@ if __name__ == "__main__":
         graph_pretrain_generator = vis.line(X = np.array([epoch]), Y = np.array([loss]), win = graph_pretrain_generator, update = update, opts=dict(title="pretrain generator training curve"))
 
     # Pretrain Discriminator
-    dis_criterion = nn.BCELoss(size_average=True)
-    dis_optimizer = optim.Adam(discriminator.parameters(), lr=0.00005)
-    if opt.cuda:
-        dis_criterion = dis_criterion.cuda()
-    print ("Pretrain Discriminator ...")
-    total_iter = 0
-    for epoch in range(4):
-        generated_samples, exp_samples = generate_samples(generator, BATCH_SIZE, train_states.shape[0], train_states)
-        dis_data_iter = DisDataIter(train_states, generated_samples, BATCH_SIZE)
-        if total_iter % VAL_FREQ == 0:
-            dis_val_data_iter = DisDataIter(val_states, generated_samples, BATCH_SIZE)
-        for _ in range(2):
-            if total_iter % VAL_FREQ == 0:
-                validation_loss = eval_epoch(discriminator, dis_val_data_iter, dis_criterion, generator=False)
-                print('Epoch [%d], Iter[%d] Validation loss: %f' % (epoch, _, validation_loss))
-                update = None if graph_pretrain_discriminator_validation is None else 'append'
-                graph_pretrain_discriminator_validation = vis.line(X = np.array([epoch]), Y = np.array([validation_loss]), win = graph_pretrain_discriminator_validation, update = update, opts=dict(title="pretrain discriminator validation curve"))
-            loss = train_epoch(discriminator, dis_data_iter, dis_criterion, dis_optimizer, generator=False)
-            print('Epoch [%d], Iter[%d] loss: %f' % (epoch, _, loss))
-            update = None if graph_pretrain_discriminator is None else 'append'
-            graph_pretrain_discriminator = vis.line(X = np.array([total_iter]), Y = np.array([loss]), win = graph_pretrain_discriminator, update = update, opts=dict(title="pretrain discriminator training curve"))
-            total_iter += 1
+    # dis_criterion = nn.BCELoss(size_average=True)
+    # dis_optimizer = optim.Adam(discriminator.parameters(), lr=0.00005)
+    # if opt.cuda:
+    #     dis_criterion = dis_criterion.cuda()
+    # print ("Pretrain Discriminator ...")
+    # total_iter = 0
+    # for epoch in range(4):
+    #     generated_samples, exp_samples = generate_samples(generator, BATCH_SIZE, train_states.shape[0], train_states)
+    #     dis_data_iter = DisDataIter(train_states, generated_samples, BATCH_SIZE)
+    #     if total_iter % VAL_FREQ == 0:
+    #         dis_val_data_iter = DisDataIter(val_states, generated_samples, BATCH_SIZE)
+    #     for _ in range(2):
+    #         if total_iter % VAL_FREQ == 0:
+    #             validation_loss = eval_epoch(discriminator, dis_val_data_iter, dis_criterion, generator=False)
+    #             print('Epoch [%d], Iter[%d] Validation loss: %f' % (epoch, _, validation_loss))
+    #             update = None if graph_pretrain_discriminator_validation is None else 'append'
+    #             graph_pretrain_discriminator_validation = vis.line(X = np.array([epoch]), Y = np.array([validation_loss]), win = graph_pretrain_discriminator_validation, update = update, opts=dict(title="pretrain discriminator validation curve"))
+    #         loss = train_epoch(discriminator, dis_data_iter, dis_criterion, dis_optimizer, generator=False)
+    #         print('Epoch [%d], Iter[%d] loss: %f' % (epoch, _, loss))
+    #         update = None if graph_pretrain_discriminator is None else 'append'
+    #         graph_pretrain_discriminator = vis.line(X = np.array([total_iter]), Y = np.array([loss]), win = graph_pretrain_discriminator, update = update, opts=dict(title="pretrain discriminator training curve"))
+    #         total_iter += 1
             
     save_model(generator, discriminator, "saved_models/"+str("pretrained_models_"+str(experiment_num)))
     
@@ -425,11 +425,11 @@ if __name__ == "__main__":
                 print ("model prob: %f" % generator_probabilites) 
                 print (total_iter_temp)
 
-                loss = train_epoch(discriminator, dis_data_iter, dis_criterion, dis_optimizer, generator=False)
+                # loss = train_epoch(discriminator, dis_data_iter, dis_criterion, dis_optimizer, generator=False)
                 total_iter += 1
-                print ("adversial training loss - discriminator [%d]: %f" % (total_batch, loss))
-                update = None if graph_adversarial_training_discriminator is None else 'append'
-                graph_adversarial_training_discriminator = vis.line(X = np.array([total_iter]), Y = np.array([loss]), win = graph_adversarial_training_discriminator, update = update, opts=dict(title="adversarial discriminator training loss"))
+                # print ("adversial training loss - discriminator [%d]: %f" % (total_batch, loss))
+                # update = None if graph_adversarial_training_discriminator is None else 'append'
+                # graph_adversarial_training_discriminator = vis.line(X = np.array([total_iter]), Y = np.array([loss]), win = graph_adversarial_training_discriminator, update = update, opts=dict(title="adversarial discriminator training loss"))
                 
                 update = None if graph_probabilities is None else 'append'
                 graph_probabilities = vis.line(X = np.array([total_iter_temp]), Y = np.column_stack((np.array([generator_probabilites]),np.array([expert_probabilites]))), win = graph_probabilities, \
