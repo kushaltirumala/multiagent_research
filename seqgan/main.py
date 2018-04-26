@@ -313,7 +313,6 @@ if __name__ == "__main__":
         update = None if graph_pretrain_generator is None else 'append'
         graph_pretrain_generator = vis.line(X = np.array([epoch]), Y = np.array([loss]), win = graph_pretrain_generator, update = update, opts=dict(title="pretrain generator training curve"))
 
-    Pretrain Discriminator
     dis_criterion = nn.BCELoss(size_average=True)
     dis_optimizer = optim.Adam(discriminator.parameters(), lr=0.00005)
     if opt.cuda:
